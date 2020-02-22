@@ -1,0 +1,37 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>File List</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<h1>File List</h1>
+<a href="addFile">Add File</a>
+<br/><br/>
+<div>
+    <table border="1">
+        <tr>
+            <th>id</th>
+            <th>File name</th>
+            <th>Type</th>
+            <th>Size</th>
+            <th>Date</th>
+            <th>Parent</th>
+            <th>Author</th>
+            <th>Editor</th>
+        </tr>
+        <tr th:each ="file : ${files}">
+            <td th:utext="${file.id}">...</td>
+            <td th:utext="${file.filename}">...</td>
+            <td th:utext="${file.type}">...</td>
+            <td th:utext="${file.size}">...</td>
+            <td th:utext="${file.date}">...</td>
+            <td th:utext="${file.parent}">...</td>
+            <td th:utext="${file.author}">...</td>
+            <td th:utext="${file.editor}">...</td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>
