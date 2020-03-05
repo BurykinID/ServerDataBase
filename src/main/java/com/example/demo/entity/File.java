@@ -22,13 +22,13 @@ public class File {
             strategy = "org.hibernate.id.UUIDGenerator"
     )
     private UUID id;
-    @Size(min = 1, message = "Имя файла должно содерать минимум 1 символ")
     private String filename;
     @Size(min = 4, max = 6, message = "Тип создаваемого объекта файл или папка")
     private String type;
     @Size(min = 4, message = "Длина минимум 4 символа")
     private String size;
-    @Size(min = 19, max = 19, message = "Пример заполнения 2020-02-04 12:32:12")
+    @Size(min = 13)
+    @Column(length = 15)
     private String date;
     @NonNull
     private String parent;
@@ -36,8 +36,9 @@ public class File {
     private String author;
     @Size(min = 5, message = "")
     private String editor;
+    private String path;
 
-    public File (String filename, String type, String size,String date, String parent, String author, String editor) {
+    public File (String filename, String type, String size,String date, String parent, String author, String editor, String path) {
         this.filename = filename;
         this.type = type;
         this.size = size;
@@ -45,6 +46,7 @@ public class File {
         this.parent = parent;
         this.author = author;
         this.editor = editor;
+        this.path = path;
     }
 
 }

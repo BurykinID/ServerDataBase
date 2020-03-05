@@ -20,6 +20,7 @@
             <th>Parent</th>
             <th>Author</th>
             <th>Editor</th>
+            <th>Path</th>
         </tr>
         <tr th:each ="file : ${files}">
             <td th:utext="${file.id}">...</td>
@@ -30,6 +31,7 @@
             <td th:utext="${file.parent}">...</td>
             <td th:utext="${file.author}">...</td>
             <td th:utext="${file.editor}">...</td>
+            <td th:utext="${file.path}">...</td>
         </tr>
     </table>
 </div>

@@ -7,22 +7,15 @@
 </head>
 <body>
 <h1>Create a File:</h1>
-
 <div>
     <form th:action="@{/addFile}"
-          th:object="${fileForm}" method="POST">
-        File Name
-        <input type="text" th:field="*{filename}" placeholder="Имя файла"/>
+          th:object="${fileForm}" method="POST"
+          enctype="multipart/form-data">
+        File:
+        <input type="file" th:field="*{filename}" th:name="file">
         <br/>
         Type:
         <input type="text" th:field="*{type}" placeholder="File/Folder"/>
-        <p th:if="${#fields.hasErrors('type')}" th:errors="*{type}">Test</p>
-        <br/>
-        Size:
-        <input type="text" th:field="*{size}" placeholder="1024 Kb"/>
-        <br/>
-        Date:
-        <input type="text" th:field="*{date}" placeholder="2020-02-06 12:24:36"/>
         <br/>
         Parent:
         <input type="text" th:field="*{parent}" placeholder="test3"/>
@@ -36,19 +29,6 @@
         <input type="submit" value="Create" />
     </form>
 </div>
-<!--
-<form th:action="@{/addFile}"
-      th:object="${fileForm}" method="POST">
-    File Name:
-    <input type="text" th:field="*{filename}" />
-    <br/>
-    Nesting:
-    <input type="text" th:field="*{type}" />
-    <br/>
-    <input type="submit" value="Create" />
-</form>
--->
 <br/>
-
 </body>
 </html>
