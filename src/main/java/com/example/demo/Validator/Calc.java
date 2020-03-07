@@ -1,4 +1,4 @@
-package com.example.demo.Calc;
+package com.example.demo.Validator;
 
 public class Calc {
 

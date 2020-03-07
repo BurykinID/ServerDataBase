@@ -1,6 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.Calc.Calc;
+import com.example.demo.Validator.Calc;
 import com.example.demo.entity.File;
 import com.example.demo.form.FileForm;
 import com.example.demo.repository.FileRepository;
@@ -22,12 +22,11 @@ public class UploadFileController {
     @Autowired
     private FileRepository fileRepository;
 
-    
 
-    @Value ("${upload.path}")
+    @Value("${upload.path}")
     private String uploadPath;
 
-    @GetMapping (value = "/addFile")
+    @GetMapping(value = "/addFile")
     public String showAddPersonPage(Model model) {
 
         FileForm fileForm = new FileForm();
@@ -36,7 +35,7 @@ public class UploadFileController {
         return "addFile";
     }
 
-    @PostMapping (value = { "/addFile" })
+    @PostMapping(value = {"/addFile"})
     public String saveFile(@RequestParam("filename") MultipartFile file,
                            @RequestParam String type,
                            @RequestParam String parent,
@@ -52,12 +51,14 @@ public class UploadFileController {
                 uploadDir.mkdir();
             }
 
-            String resultName = file.getOriginalFilename();
-            String size = Calc.getFileSize(file.getSize());
-            String path = uploadPath + resultName;
-            String date = String.valueOf(new Date().getTime());
-            newFile = new File(resultName, type, size, date, parent, author, editor, path);
-            file.transferTo(new java.io.File(uploadPath + resultName));
+            String uploadFileName = file.getOriginalFilename();
+            String uploadSize = Calc.getFileSize(file.getSize());
+            String uploadPathFile = uploadPath + uploadFileName;
+            long time = new Date().getTime();
+            String uploadDate = String.valueOf(time);
+
+            newFile = new File(uploadFileName, type, uploadSize, uploadDate, parent, author, editor, uploadPathFile);
+            file.transferTo(new java.io.File(uploadPathFile));
 
         }
 
@@ -66,5 +67,5 @@ public class UploadFileController {
 
         return "redirect:/listFile";
     }
-
 }
+
