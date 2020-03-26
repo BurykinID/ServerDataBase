@@ -34,6 +34,7 @@ version: "3.1"
 #    links:
 #      - postgres
 
+
 services:
   app:
     container_name: testcont
@@ -45,6 +46,8 @@ services:
       - dbpostgres
   dbpostgres:
     image: postgres
+    volumes:
+      - /home/ivan/Documents/forTest/:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     environment:

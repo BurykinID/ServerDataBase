@@ -1,11 +1,11 @@
-#FROM java:alphine
-#VOLUME
-#RUN mkdir usr/src/app
-#WORKDIR usr/src/app
-#COPY . usr/src/app
-#EXPOSE 8080
+FROM openjdk:8-jdk-alpine
+RUN mkdir -p usr/src/app/
+RUN mkdir -p /var/lib/postgresql/data/
+WORKDIR usr/src/app/
+ADD target/demo.jar usr/src/app/demo.jar
+EXPOSE 8080
 #CMD ["java", "demo.jar"]
-#ENTRYPOINT ["java", "-jar", "demo.jar"]
+ENTRYPOINT ["java", "-jar", "usr/src/app/demo.jar"]
 
 #FROM openjdk:8-jdk-alpine
 #VOLUME /tmp
@@ -16,9 +16,9 @@
 #ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/.urandom","-Dspring.profiles.active=container", "-jar", "/app/app.jar"]
 
 
-FROM openjdk:8-jdk-alpine
-MAINTAINER demo.example.com
-VOLUME /tmp
-EXPOSE 8080
-ADD target/demo.jar demo.jar
-ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/.urandom","-Dspring.profiles.active=container", "-jar", "/demo.jar"]
+#FROM openjdk:8-jdk-alpine
+#VOLUME /tmp
+#RUN mkdir -p tmp/files
+#EXPOSE 8080
+#ADD target/demo.jar demo.jar
+#ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/.urandom","-Dspring.profiles.active=container", "-jar", "/demo.jar"]
