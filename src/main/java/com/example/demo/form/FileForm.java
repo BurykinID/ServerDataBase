@@ -19,5 +19,6 @@ public class FileForm {
     private String parent;
     private String author;
     private String editor;
+    private String path;
 
 }
