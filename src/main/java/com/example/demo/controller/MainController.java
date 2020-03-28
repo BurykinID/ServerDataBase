@@ -16,9 +16,9 @@ public class MainController {
     @Autowired
     private FileRepository fileRepository;
 
-    @GetMapping(value = { "/", "/index" })
+    @GetMapping(value = { "/"})
     public String index(Model model) {
-        return "index";
+        return "login";
     }
 
     @GetMapping(value = "/listFile")

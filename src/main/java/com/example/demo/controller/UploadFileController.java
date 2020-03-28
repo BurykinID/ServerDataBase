@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.Date;
 
 @Controller
@@ -68,5 +68,27 @@ public class UploadFileController {
 
         return "redirect:/listFile";
     }
+
+    @GetMapping(value = {"/check"})
+    public String checkFile() {
+
+        try {
+            BufferedReader bufferedReader = new BufferedReader( new FileReader("/var/lib/postgresql/data/aaaa.txt"));
+            try {
+                String s = null;
+                while ((s = bufferedReader.readLine()) != null) {
+                    System.out.println(s);
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return "check.html";
+    }
+
 }
 
