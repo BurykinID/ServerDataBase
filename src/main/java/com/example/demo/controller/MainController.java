@@ -18,7 +18,7 @@ public class MainController {
 
     @GetMapping(value = { "/"})
     public String index(Model model) {
-        return "login";
+        return "index";
     }
 
     @GetMapping(value = "/listFile")
