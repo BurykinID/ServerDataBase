@@ -36,9 +36,10 @@ public class RegistrationController {
         User userFromDb =  userRepository.findByUsername(username);
 
         if (userFromDb != null) {
+            // нужно сделать отображение на экране при помощи thymeleaf
             //model.put("message", "User already exists!");
             System.out.println("user already exists!");
-            return "registration";
+            return "redirect:/registration";
         }
 
         User newUser = new User(username, password);
