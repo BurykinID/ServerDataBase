@@ -32,9 +32,9 @@ public class File {
     private String date;
     @NonNull
     private String parent;
-    @Size(min = 5, message = "Автор не может быть короче")
+    @Size(min = 1, message = "Автор не может быть короче")
     private String author;
-    @Size(min = 5, message = "")
+    @Size(min = 1, message = "")
     private String editor;
     private String path;
 

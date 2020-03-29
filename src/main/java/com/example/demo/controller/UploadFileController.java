@@ -2,10 +2,12 @@ package com.example.demo.controller;
 
 import com.example.demo.Validator.Calc;
 import com.example.demo.entity.File;
+import com.example.demo.entity.User;
 import com.example.demo.form.FileForm;
 import com.example.demo.repository.FileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,11 +39,12 @@ public class UploadFileController {
     }
 
     @PostMapping(value = {"/addFile"})
-    public String saveFile(@RequestParam("filename") MultipartFile file,
-                           @RequestParam String type,
-                           @RequestParam String parent,
-                           @RequestParam String author,
-                           @RequestParam String editor) throws IOException {
+    public String saveFile( @AuthenticationPrincipal User user,
+                            @RequestParam("filename") MultipartFile file,
+                            @RequestParam String type,
+                            @RequestParam String parent,
+                            @RequestParam String author,
+                            @RequestParam String editor) throws IOException {
 
         File newFile = null;
 
@@ -58,7 +61,7 @@ public class UploadFileController {
             long time = new Date().getTime();
             String uploadDate = String.valueOf(time);
 
-            newFile = new File(uploadFileName, type, uploadSize, uploadDate, parent, author, editor, uploadPathFile);
+            newFile = new File(uploadFileName, type, uploadSize, uploadDate, parent, user.getUsername(), user.getUsername(), uploadPathFile);
             file.transferTo(new java.io.File(uploadPathFile));
 
         }
@@ -68,6 +71,9 @@ public class UploadFileController {
 
         return "redirect:/listFile";
     }
+
+    /*
+    only for test with docker
 
     @GetMapping(value = {"/check"})
     public String checkFile() {
@@ -88,7 +94,7 @@ public class UploadFileController {
         }
 
         return "check.html";
-    }
+    }*/
 
 }
 
