@@ -1,10 +1,12 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.User;
+import com.example.demo.form.UserForm;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.role.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,7 +21,11 @@ public class RegistrationController {
     UserRepository userRepository;
 
     @GetMapping(value = "/registration")
-    public String registration() {
+    public String registration(Model model) {
+
+        UserForm userForm = new UserForm();
+        model.addAttribute("userForm", userForm);
+
         return "registration";
     }
 
@@ -31,7 +37,7 @@ public class RegistrationController {
 
         if (userFromDb != null) {
             //model.put("message", "User already exists!");
-            System.out.println();
+            System.out.println("user already exists!");
             return "registration";
         }
 
