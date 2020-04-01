@@ -11,8 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 public class RegistrationController {
@@ -26,7 +25,7 @@ public class RegistrationController {
         UserForm userForm = new UserForm();
         model.addAttribute("userForm", userForm);
 
-        return "registration";
+        return "users/registration";
     }
 
     @PostMapping(value = "/registration")
@@ -37,13 +36,16 @@ public class RegistrationController {
 
         if (userFromDb != null) {
             // нужно сделать отображение на экране при помощи thymeleaf
-            //model.put("message", "User already exists!");
+            // model.put("message", "User already exists!");
             System.out.println("user already exists!");
             return "redirect:/registration";
         }
 
         User newUser = new User(username, password);
-        newUser.setRoles(Collections.singleton(Role.USER));
+        Set<Role> roles = new HashSet<>();
+        roles.add(Role.USER);
+        roles.add(Role.ADMIN);
+        newUser.setRoles(roles);
         userRepository.save(newUser);
 
         return "redirect:/login";
