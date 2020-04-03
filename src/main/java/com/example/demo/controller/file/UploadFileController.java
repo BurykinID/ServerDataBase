@@ -1,4 +1,4 @@
-package com.example.demo.controller;
+package com.example.demo.controller.file;
 
 import com.example.demo.Validator.Calc;
 import com.example.demo.entity.File;
@@ -18,8 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Controller
 public class UploadFileController {
@@ -101,9 +99,6 @@ public class UploadFileController {
 
             }
 
-
-
-
             if (fileExistence) {
 
                 countFiles += 1;
@@ -127,8 +122,12 @@ public class UploadFileController {
             long time = new Date().getTime();
             String uploadDate = String.valueOf(time);
 
-            newFile = new File(uploadFileName, type, uploadSize, uploadDate, parent, user.getUsername(), user.getUsername(), uploadPathFile);
+            ArrayList<String> accessList = new ArrayList<>();
+            accessList.add(user.getUsername());
+
+            newFile = new File(uploadFileName, type, uploadSize, uploadDate, parent, user.getUsername(), user.getUsername(), uploadPathFile, accessList);
             file.transferTo(new java.io.File(uploadPathFile));
+
 
         }
 

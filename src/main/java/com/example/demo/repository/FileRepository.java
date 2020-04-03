@@ -9,5 +9,7 @@ public interface FileRepository extends JpaRepository<File, Long> {
 
         Optional<File> findById(Long id);
         Optional<File> findByAuthor(String username);
+        File findByFilename(String filename);
+        Optional<File> findByAccessList(String username);
 
 }

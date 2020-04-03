@@ -9,7 +9,8 @@
 <h1>Create a File:</h1>
 <div>
     <form th:action="@{/addFile}"
-          th:object="${fileForm}" method="POST"
+          th:object="${fileForm}"
+          method="POST"
           enctype="multipart/form-data">
         File:
         <input type="file" th:field="*{filename}" th:name="file">

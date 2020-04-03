@@ -7,6 +7,7 @@ import org.springframework.lang.NonNull;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
 import java.util.UUID;
 
 @Entity
@@ -37,8 +38,9 @@ public class File {
     @Size(min = 1, message = "")
     private String editor;
     private String path;
+    private ArrayList<String> accessList;
 
-    public File (String filename, String type, String size,String date, String parent, String author, String editor, String path) {
+    public File (String filename, String type, String size,String date, String parent, String author, String editor, String path, ArrayList<String> accessList) {
         this.filename = filename;
         this.type = type;
         this.size = size;
@@ -47,6 +49,7 @@ public class File {
         this.author = author;
         this.editor = editor;
         this.path = path;
+        this.accessList = accessList;
     }
 
 }
