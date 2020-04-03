@@ -17,5 +17,6 @@ public class UserForm {
     private String username;
     private String password;
     private Set<Role> roles;
+    private String email;
 
 }

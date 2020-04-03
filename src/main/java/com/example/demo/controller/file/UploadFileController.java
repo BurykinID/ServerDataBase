@@ -48,7 +48,7 @@ public class UploadFileController {
         boolean fileExistence = false;
 
         if (file != null) {
-            File uploadDir = new File(uploadPath);
+            java.io.File uploadDir = new java.io.File(uploadPath);
 
             if (!uploadDir.exists()) {
                 uploadDir.mkdir();
@@ -56,9 +56,9 @@ public class UploadFileController {
 
             String uploadFileName = file.getOriginalFilename();
 
-            File[] files = uploadDir.listFiles();
+            java.io.File[] files = uploadDir.listFiles();
             ArrayList<String> listFileName = new ArrayList<>();
-            for (File fileForBruteForce : files ) {
+            for (java.io.File fileForBruteForce : files ) {
                 listFileName.add(fileForBruteForce.getName());
             }
 
@@ -126,7 +126,7 @@ public class UploadFileController {
             accessList.add(user.getUsername());
 
             newFile = new File(uploadFileName, type, uploadSize, uploadDate, parent, user.getUsername(), user.getUsername(), uploadPathFile, accessList);
-            file.transferTo(new File(uploadPathFile));
+            file.transferTo(new java.io.File(uploadPathFile));
 
 
         }

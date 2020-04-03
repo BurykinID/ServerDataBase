@@ -30,6 +30,8 @@ public class User implements UserDetails {
     private String username;
     @NonNull
     private String password;
+    @NonNull
+    private String email;
 
     // вообще надо бы lazy, но это на потестить потом, как долго будут грузиться данные
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
@@ -37,9 +39,10 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
 
-    public User(String username, String password) {
+    public User(String username, String password, String email) {
         this.username = username;
         this.password = password;
+        this.email = email;
     }
 
 
@@ -87,4 +90,18 @@ public class User implements UserDetails {
     public boolean isEnabled () {
         return true;
     }
+
+    public String getEmail () {
+        return email;
+    }
+
+    public void setEmail (String email) {
+        this.email = email;
+    }
+
+    public void setRoles (Set<Role> roles) {
+        this.roles = roles;
+    }
+
+
 }

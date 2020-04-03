@@ -16,7 +16,6 @@ public class UsersController {
         this.userRepository = userRepository;
     }
 
-
     @GetMapping
     public String getUserList(Model model) {
 

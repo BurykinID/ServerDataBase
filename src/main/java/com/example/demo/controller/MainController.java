@@ -28,8 +28,6 @@ public class MainController {
     @GetMapping(value = "/listFile")
     public String personList( @AuthenticationPrincipal User user,
                               Map<String, Object> model) {
-
-
         List<File> files = fileRepository.findAll();
 
         ArrayList<File> accessFiles = new ArrayList<>();

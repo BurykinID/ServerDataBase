@@ -31,6 +31,7 @@ public class RegistrationController {
     @PostMapping(value = "/registration")
     public String addUser(@RequestParam String username,
                           @RequestParam String password,
+                          @RequestParam String email,
                           Map<String, Object> model) {
         User userFromDb =  userRepository.findByUsername(username);
 
@@ -41,7 +42,7 @@ public class RegistrationController {
             return "redirect:/registration";
         }
 
-        User newUser = new User(username, password);
+        User newUser = new User(username, password, email);
         Set<Role> roles = new HashSet<>();
         roles.add(Role.USER);
         roles.add(Role.ADMIN);
