@@ -1,0 +1,51 @@
+<!--<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <title>Spring Security Example </title>
+</head>
+<body>
+Add new user
+
+<form th:action="@{/registration}"
+      th:object="${userForm}" method="POST"
+      enctype="multipart/form-data">
+
+    Username:
+    <input type="text" th:field="*{username}" placeholder="user"/>
+    <br/>
+    Password:
+    <input type="text" th:field="*{password}" placeholder="********"/>
+    <br/>
+
+</form>
+
+</body>
+</html>-->
+
+
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Add File</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/static/css/style.css}"/>
+</head>
+<body>
+<h1>Add new User:</h1>
+<div>
+    <form th:action="@{/registration}"
+          th:object="${userForm}" method="POST"
+          enctype="multipart/form-data">
+        File:
+        <input type="text" th:field="*{username}" th:placeholder="user">
+        <br/>
+        Type:
+        <input type="password" th:field="*{password}" placeholder="********"/>
+        <br/>
+        <input type="submit" value="Create" />
+    </form>
+</div>
+<br/>
+</body>
+</html>

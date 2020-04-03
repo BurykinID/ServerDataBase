@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -19,5 +20,7 @@ public class FileForm {
     private String parent;
     private String author;
     private String editor;
+    private String path;
+    private ArrayList<String> accessList;
 
 }
