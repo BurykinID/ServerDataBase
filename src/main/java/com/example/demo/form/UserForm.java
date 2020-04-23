@@ -18,5 +18,6 @@ public class UserForm {
     private String password;
     private Set<Role> roles;
     private String email;
+    private String activationCode;
 
 }

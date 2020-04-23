@@ -21,6 +21,7 @@ public class FileForm {
     private String author;
     private String editor;
     private String path;
+    private ArrayList<String> tag;
     private ArrayList<String> accessList;
 
 }

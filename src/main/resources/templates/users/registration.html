@@ -33,6 +33,11 @@ Add new user
 </head>
 <body>
 <h1>Add new User:</h1>
+
+<div th:if="${message}">
+    <h1 th:utext="${message}"/>
+</div>
+
 <div>
     <form th:action="@{/registration}"
           th:object="${userForm}" method="POST"

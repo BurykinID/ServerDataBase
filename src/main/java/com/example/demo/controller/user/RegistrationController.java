@@ -1,23 +1,26 @@
 package com.example.demo.controller.user;
 
 import com.example.demo.entity.User;
+import com.example.demo.forJsonObject.Response;
 import com.example.demo.form.UserForm;
-import com.example.demo.repository.UserRepository;
-import com.example.demo.role.Role;
+import com.example.demo.service.UserService;
+import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.*;
+import java.util.Map;
 
 @Controller
 public class RegistrationController {
 
     @Autowired
-    UserRepository userRepository;
+    private UserService userService;
+
 
     @GetMapping(value = "/registration")
     public String registration(Model model) {
@@ -28,28 +31,68 @@ public class RegistrationController {
         return "users/registration";
     }
 
+    //success только чекнуть что с постом
     @PostMapping(value = "/registration")
-    public String addUser(@RequestParam String username,
-                          @RequestParam String password,
-                          @RequestParam String email,
-                          Map<String, Object> model) {
-        User userFromDb =  userRepository.findByUsername(username);
+    public @ResponseBody String addUser(User user) {
 
-        if (userFromDb != null) {
-            // нужно сделать отображение на экране при помощи thymeleaf
-            // model.put("message", "User already exists!");
-            System.out.println("user already exists!");
-            return "redirect:/registration";
+        String response;
+
+        Gson gson = new Gson();
+
+        Response answer = new Response();
+
+        if (!userService.addUser(user)) {
+            //model.addAttribute("message", "User already exists!");
+            //System.out.println("user already exists!");
+            answer.setDescription("User already exists!");
+            answer.setStatus("error");
+            response = gson.toJson(answer);
+            return response;
+
         }
 
-        User newUser = new User(username, password, email);
-        Set<Role> roles = new HashSet<>();
-        roles.add(Role.USER);
-        roles.add(Role.ADMIN);
-        newUser.setRoles(roles);
-        userRepository.save(newUser);
+        answer.setStatus("ok");
+        answer.setDescription("User create");
 
-        return "redirect:/login";
+        response = gson.toJson(answer);
+
+        return response;
+    }
+
+
+    //success
+    @GetMapping("/activate/{code}")
+    public @ResponseBody String activate(/*Model model,*/@PathVariable(name = "code") String code) {
+
+        boolean isActivated = userService.activateUser(code);
+
+        Gson gson = new Gson();
+
+        String response;
+
+        Response answer = new Response();
+
+        if(isActivated) {
+            //model.addAttribute("message", "User activate");
+            //System.out.println("User activate");
+            answer.setStatus("ok");
+            answer.setDescription("User has activate");
+            response = gson.toJson(answer);
+        }
+
+        else {
+            answer.setStatus("error");
+            answer.setDescription("Activate code doesn't found.");
+            response = gson.toJson(answer);
+
+            //System.out.println("Activation code isn't found");
+            //model.addAttribute("message", "Activation code isn't found");
+        }
+
+
+
+        return response;
+
     }
 
 }

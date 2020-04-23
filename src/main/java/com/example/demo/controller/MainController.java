@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.File;
 import com.example.demo.entity.User;
+import com.example.demo.forJsonObject.ElObj.Rules;
 import com.example.demo.repository.FileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -9,10 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Controller
 public class MainController {
@@ -37,12 +35,20 @@ public class MainController {
         for (File file: files) {
 
             ArrayList<String> accessList = file.getAccessList();
-            for (String accessUsername: accessList) {
-                if (username.equals(accessUsername)) {
+
+            for (String list : accessList) {
+                if (list.equals(username)) {
                     accessFiles.add(file);
                     break;
                 }
             }
+
+            /*for (int i = 0; i < accessList.size(); i++) {
+                if (accessList.get(i).get(username) != null) {
+                    accessFiles.add(file);
+                    break;
+                }
+            }*/
 
         }
 

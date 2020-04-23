@@ -17,7 +17,13 @@
         <th>File name</th>
         <td th:utext="${file.filename}">...</td>
         Username:
-        <input type="text" th:field="*{accessList}" placeholder="usr1, usr2, ... usrn"/>
+        <input type="text" placeholder="usr1, usr2, ... usrn" name="read"/>
+        <br/>
+        Username:
+        <input type="text"  placeholder="usr1, usr2, ... usrn" name="write"/>
+        <br/>
+        Username:
+        <input type="text" placeholder="usr1, usr2, ... usrn" name="delete"/>
         <br/>
         <input type="submit" value="Update" />
     </form>

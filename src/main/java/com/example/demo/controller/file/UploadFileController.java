@@ -3,8 +3,10 @@ package com.example.demo.controller.file;
 import com.example.demo.Validator.Calc;
 import com.example.demo.entity.File;
 import com.example.demo.entity.User;
+import com.example.demo.forJsonObject.ElObj.Rules;
 import com.example.demo.form.FileForm;
 import com.example.demo.repository.FileRepository;
+import org.dom4j.rule.Rule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 
 @Controller
 public class UploadFileController {
@@ -42,7 +45,8 @@ public class UploadFileController {
     public String saveFile( @AuthenticationPrincipal User user,
                             @RequestParam("filename") MultipartFile file,
                             @RequestParam String type,
-                            @RequestParam String parent) throws IOException {
+                            @RequestParam String parent,
+                            @RequestParam String tag) throws IOException {
 
         File newFile = null;
         boolean fileExistence = false;
@@ -53,6 +57,8 @@ public class UploadFileController {
             if (!uploadDir.exists()) {
                 uploadDir.mkdir();
             }
+
+            StringBuilder uploadFileNameSb = new StringBuilder();
 
             String uploadFileName = file.getOriginalFilename();
 
@@ -77,25 +83,19 @@ public class UploadFileController {
                         int begin = filename.indexOf("(");
                         if (begin != -1) {
                             int end = filename.indexOf(")");
-                            String filenameForEquals = filename.substring(0, begin) + "." + typeFile;
-                            if (filenameForEquals.equals(uploadFileName)) {
+                            StringBuilder filenameForEquals = new StringBuilder();
+                            filenameForEquals.append(filename.substring(0, begin));
+                            filenameForEquals.append(".");
+                            filenameForEquals.append(typeFile);
+                            if (filenameForEquals.toString().equals(uploadFileName)) {
                                 short nowCountFiles = Short.parseShort(filename.substring(begin+1, end));
                                 if (nowCountFiles > countFiles)
-                                countFiles = nowCountFiles;
+                                    countFiles = nowCountFiles;
                             }
                         }
                     }
 
-
-                    /*if (index != -1) {
-                        Pattern pattern = Pattern.compile(fileNameForBruteForce.substring(index) + "\\(([0-9]{1,3})\\).*");
-                        Matcher matcher = pattern.matcher(fileNameForBruteForce);
-                        if (matcher.find()) {
-                            countFiles = Short.parseShort(matcher.group(1));
-                        }
-                    }*/
                 }
-
 
             }
 
@@ -113,20 +113,36 @@ public class UploadFileController {
                     typeFile = lotOfString[lengthLotOfString-1];
                 }
 
-                uploadFileName = filenameWithoutType + "(" + countFiles + ")." + typeFile;
+                uploadFileNameSb.append(filenameWithoutType);
+                uploadFileNameSb.append("(");
+                uploadFileNameSb.append(countFiles);
+                uploadFileNameSb.append(").");
+                uploadFileNameSb.append(typeFile);
+
+                uploadFileName = uploadFileNameSb.toString();
 
             }
 
             String uploadSize = Calc.getFileSize(file.getSize());
-            String uploadPathFile = uploadPath + uploadFileName;
+
+            StringBuilder uploadPathFileSb = new StringBuilder();
+            uploadPathFileSb.append(uploadPath);
+            uploadPathFileSb.append(uploadFileName);
+
+            String uploadPathFile = uploadPathFileSb.toString();
+
             long time = new Date().getTime();
             String uploadDate = String.valueOf(time);
 
             ArrayList<String> accessList = new ArrayList<>();
             accessList.add(user.getUsername());
 
-            newFile = new File(uploadFileName, type, uploadSize, uploadDate, parent, user.getUsername(), user.getUsername(), uploadPathFile, accessList);
-            file.transferTo(new java.io.File(uploadPathFile));
+            ArrayList<String> tags = new ArrayList<>();
+            tags.add("#тест");
+            
+
+            newFile = new File(uploadFileName, type, uploadSize, uploadDate, parent, user.getUsername(), user.getUsername(), uploadPathFile, tags, accessList);
+            file.transferTo(new java.io.File(uploadPathFile.toString()));
 
 
         }

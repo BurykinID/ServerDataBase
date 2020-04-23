@@ -3,6 +3,7 @@ package com.example.demo.entity;
 
 import com.example.demo.role.Role;
 
+import com.google.gson.annotations.Expose;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.security.core.GrantedAuthority;
@@ -27,11 +28,13 @@ public class User implements UserDetails {
     )
     private UUID id;
     @NonNull
+    @Expose
     private String username;
     @NonNull
     private String password;
     @NonNull
     private String email;
+    private String activationCode;
 
     // вообще надо бы lazy, но это на потестить потом, как долго будут грузиться данные
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
@@ -103,5 +106,11 @@ public class User implements UserDetails {
         this.roles = roles;
     }
 
+    public String getActivationCode () {
+        return activationCode;
+    }
 
+    public void setActivationCode (String activationCode) {
+        this.activationCode = activationCode;
+    }
 }
