@@ -4,6 +4,8 @@ import com.example.demo.entity.User;
 import com.example.demo.forJsonObject.Response;
 import com.example.demo.forJsonObject.UserJSON;
 import com.example.demo.form.UserForm;
+import com.example.demo.repository.UserRepository;
+import com.example.demo.role.Role;
 import com.example.demo.service.UserService;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +13,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Controller
 public class RegistrationController {
@@ -19,6 +23,8 @@ public class RegistrationController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    UserRepository userRepository;
 
     @GetMapping(value = "/registration")
     public String registration(Model model) {
@@ -30,9 +36,8 @@ public class RegistrationController {
     }
 
     //success только чекнуть что с постом
-    @PostMapping(value = "/registration"
-                 /*headers = {"Content-type=application/json"}*/)
-
+    /*@PostMapping(value = "/registration"
+     *//*headers = {"Content-type=application/json"}*//*)
     public @ResponseBody String addUser(@RequestBody UserJSON user) {
 
         String response;
@@ -65,8 +70,32 @@ public class RegistrationController {
         response = gson.toJson(answer);
 
         return response;
-    }
+    }*/
 
+
+    @PostMapping(value = "/registration")
+    public String addUser(@RequestParam String username,
+                          @RequestParam String password,
+                          @RequestParam String email,
+                          Map<String, Object> model) {
+        User userFromDb =  userRepository.findByUsername(username);
+
+        if (userFromDb != null) {
+            // нужно сделать отображение на экране при помощи thymeleaf
+            // model.put("message", "User already exists!");
+            System.out.println("user already exists!");
+            return "redirect:/registration";
+        }
+
+        User newUser = new User(username, password, email);
+        Set<Role> roles = new HashSet<>();
+        roles.add(Role.USER);
+        roles.add(Role.ADMIN);
+        newUser.setRoles(roles);
+        userRepository.save(newUser);
+
+        return "redirect:/login";
+    }
 
     //success
     @GetMapping("/activate/{code}")
