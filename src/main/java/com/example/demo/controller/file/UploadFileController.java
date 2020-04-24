@@ -173,25 +173,33 @@ public class UploadFileController {
         return responseString;
     }
 
-
+    // success, но надо обсудить
     @GetMapping(value = {"/getfile/{filename}"})
     @ResponseBody
     public String getFile(@PathVariable (name = "filename") String filename) {
 
         File file = fileRepository.findByFilename(filename);
 
+        Gson gson = new Gson();
+        Response response = new Response();
+
         try {
             byte[]fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
             String encodedString = Base64.getEncoder().encodeToString(fileContent);
-            return encodedString;
+            String responseString = gson.toJson(encodedString);
+            return responseString;
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return "error";
+        response.setStatus("error");
+        response.setDescription("error with encode Base 64");
+
+        String responseString = gson.toJson(response);
+
+        return responseString;
 
     }
-
 
     /*
     only for test with docker
