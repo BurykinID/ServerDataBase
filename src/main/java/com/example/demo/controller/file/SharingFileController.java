@@ -2,21 +2,24 @@ package com.example.demo.controller.file;
 
 import com.example.demo.entity.File;
 import com.example.demo.entity.User;
-import com.example.demo.forJsonObject.ArrayUsers;
-import com.example.demo.forJsonObject.ElObj.Rules;
+import com.example.demo.forJsonObject.AccessAnwerUser;
+import com.example.demo.forJsonObject.Response;
+import com.example.demo.forJsonObject.UserAccess;
+import com.example.demo.forJsonObject.Username;
 import com.example.demo.form.FileForm;
 import com.example.demo.repository.FileRepository;
 import com.example.demo.repository.UserRepository;
-import com.sun.org.apache.xpath.internal.operations.Mod;
-import org.springframework.http.MediaType;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.example.demo.role.Role;
+import com.google.gson.Gson;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
-import javax.validation.constraints.Null;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Set;
 
 @Controller
 public class SharingFileController {
@@ -184,14 +187,123 @@ public class SharingFileController {
 
 
 
-    /*@PostMapping(value = "/file/read/{filename}",
-            consumes = {MediaType.APPLICATION_JSON_VALUE})
-    public ArrayUsers updAccessListWithJson(@RequestBody ArrayUsers arrayUsers) {
+    @PostMapping(value = "/file/read/{filename}")
+    public String updAccessListWithJson(@RequestBody UserAccess userAccess,
+                                        @PathVariable("filename") String filename) {
 
-        ArrayUsers arrayUsers1 = new ArrayUsers();
+        Gson gson = new Gson();
+        Response response = new Response();
+
+        ArrayList<Username> responseWithoutError = new ArrayList<>();
+        ArrayList<Username> responseWithError = new ArrayList<>();
+        AccessAnwerUser accessAnwerUser = new AccessAnwerUser();
 
 
-    }*/
+        if (userAccess != null) {
+            String username = userAccess.getUsername();
+
+            boolean isAdmin = false;
+
+            User user = userRepository.findByUsername(username);
+            File file = fileRepository.findByFilename(filename);
+
+            Set<Role> roles = user.getRoles();
+            for (Role role : roles) {
+                if (role.equals(Role.ADMIN)) {
+                    isAdmin = true;
+                    break;
+                }
+            }
+            if (file != null) {
+                if (file.getAuthor().equals(username) || isAdmin) {
+
+                    ArrayList<String> existsUserInAccessList = file.getAccessList();
+                    // проверка того, что список пользователей, имеющих доступ к файлу уже существует
+                    if (existsUserInAccessList != null) {
+                        // получение списка пользователей, для которых необходимо расширить доступ на чтение файла.
+                        ArrayList<Username> usernameForShare = userAccess.getUsernameForShare();
+
+                        boolean userInAccessList = false;
+
+                        if (usernameForShare != null) {
+                            for (int i = 0; i < usernameForShare.size(); i++) {
+
+                                User newUser = userRepository.findByUsername(usernameForShare.get(i).getUsername());
+                                // проверка на то, что пользователь из списка вообще существует
+                                if (newUser != null) {
+
+                                    for (String userInAccess : existsUserInAccessList) {
+                                        // проверка на то, что пользователя нет в списке тех, кому разрешён доступ
+                                        if (usernameForShare.get(i).getUsername().equals(userInAccess)) {
+                                            userInAccessList = true;
+                                            break;
+                                        }
+                                    }
+                                    // если пользователя нет в списке тех, кому разрешён доступ, то его вносят в список доступа.
+                                    if (!userInAccessList) {
+                                        existsUserInAccessList.add(newUser.getUsername());
+                                    }
+                                    // в любом случае помещаем пользователя в список тех, кому успешно разрешён доступ
+                                    responseWithoutError.add(usernameForShare.get(i)) ;
+                                    userInAccessList = false;
+
+                                }
+
+                                else {
+                                    responseWithError.add(usernameForShare.get(i));
+                                }
+
+                            }
+                        }
+                        else {
+                            response.setStatus("error");
+                            response.setDescription("userlist is empty");
+                            String responseString = gson.toJson(response);
+                            return responseString;
+                        }
+
+                    }
+                    else {
+
+                        existsUserInAccessList = new ArrayList<>();
+                        existsUserInAccessList.add(file.getAuthor());
+                        for (User user1 : userRepository.findAll()) {
+                            Set<Role> roleSet = user1.getRoles();
+                            for (Role role : roleSet) {
+                                if (role.equals(Role.ADMIN)) {
+                                    existsUserInAccessList.add(user1.getUsername());
+                                    break;
+                                }
+                            }
+                        }
+
+
+
+                    }
+
+                }
+                else {
+                    response.setStatus("error");
+                    response.setDescription("not enough right");
+                    String responseString = gson.toJson(response);
+                    return responseString;
+                }
+            }
+            else {
+                response.setStatus("error");
+                response.setDescription("file doesn't exists");
+                String responseString = gson.toJson(response);
+                return responseString;
+            }
+
+
+        }
+
+        String responseString = gson.toJson(accessAnwerUser);
+
+        return responseString;
+
+    }
 
     /*@PostMapping(value = "/file/write/{filename}")
     public String updAccessListWithJson(@ResponseBody ArrayUsers arrayUsers) {

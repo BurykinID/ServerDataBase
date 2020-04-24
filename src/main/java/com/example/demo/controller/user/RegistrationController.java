@@ -2,16 +2,14 @@ package com.example.demo.controller.user;
 
 import com.example.demo.entity.User;
 import com.example.demo.forJsonObject.Response;
+import com.example.demo.forJsonObject.UserJSON;
 import com.example.demo.form.UserForm;
 import com.example.demo.service.UserService;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -32,8 +30,10 @@ public class RegistrationController {
     }
 
     //success только чекнуть что с постом
-    @PostMapping(value = "/registration")
-    public @ResponseBody String addUser(User user) {
+    @PostMapping(value = "/registration"
+                 /*headers = {"Content-type=application/json"}*/)
+
+    public @ResponseBody String addUser(@RequestBody UserJSON user) {
 
         String response;
 
@@ -41,7 +41,15 @@ public class RegistrationController {
 
         Response answer = new Response();
 
-        if (!userService.addUser(user)) {
+        User user1 = new User();
+        user1.setUsername(user.getUsername());
+        user1.setPassword(user.getPassword());
+        user1.setEmail(user.getEmail());
+        //gson.fromJson(, UserJSON.class);
+
+
+
+        if (!userService.addUser(user1)) {
             //model.addAttribute("message", "User already exists!");
             //System.out.println("user already exists!");
             answer.setDescription("User already exists!");
@@ -73,8 +81,6 @@ public class RegistrationController {
         Response answer = new Response();
 
         if(isActivated) {
-            //model.addAttribute("message", "User activate");
-            //System.out.println("User activate");
             answer.setStatus("ok");
             answer.setDescription("User has activate");
             response = gson.toJson(answer);
@@ -84,9 +90,6 @@ public class RegistrationController {
             answer.setStatus("error");
             answer.setDescription("Activate code doesn't found.");
             response = gson.toJson(answer);
-
-            //System.out.println("Activation code isn't found");
-            //model.addAttribute("message", "Activation code isn't found");
         }
 
 

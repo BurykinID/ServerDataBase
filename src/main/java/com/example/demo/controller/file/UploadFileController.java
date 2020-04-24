@@ -4,21 +4,23 @@ import com.example.demo.Validator.Calc;
 import com.example.demo.entity.File;
 import com.example.demo.entity.User;
 import com.example.demo.forJsonObject.ElObj.Rules;
+import com.example.demo.forJsonObject.Response;
 import com.example.demo.form.FileForm;
 import com.example.demo.repository.FileRepository;
+import com.google.gson.Gson;
+import org.apache.commons.io.FileUtils;
 import org.dom4j.rule.Rule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -42,6 +44,7 @@ public class UploadFileController {
     }
 
     @PostMapping(value = {"/addFile"})
+    @ResponseBody
     public String saveFile( @AuthenticationPrincipal User user,
                             @RequestParam("filename") MultipartFile file,
                             @RequestParam String type,
@@ -147,11 +150,48 @@ public class UploadFileController {
 
         }
 
-        if (newFile != null)
-            fileRepository.save(newFile);
+        boolean notNull = false;
 
-        return "redirect:/listFile";
+        if (newFile != null) {
+            fileRepository.save(newFile);
+            notNull = true;
+        }
+
+        Gson gson = new Gson();
+        Response response = new Response();
+        if (notNull) {
+            response.setStatus("ok");
+            response.setDescription("File " + file.getOriginalFilename() + " had uploaded");
+        }
+        else {
+            response.setStatus("error");
+            response.setDescription("File hadn't selected");
+        }
+
+        String responseString = gson.toJson(response);
+
+        return responseString;
     }
+
+
+    @GetMapping(value = {"/getfile/{filename}"})
+    @ResponseBody
+    public String getFile(@PathVariable (name = "filename") String filename) {
+
+        File file = fileRepository.findByFilename(filename);
+
+        try {
+            byte[]fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
+            String encodedString = Base64.getEncoder().encodeToString(fileContent);
+            return encodedString;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return "error";
+
+    }
+
 
     /*
     only for test with docker

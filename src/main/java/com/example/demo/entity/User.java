@@ -1,6 +1,5 @@
 package com.example.demo.entity;
 
-
 import com.example.demo.role.Role;
 
 import com.google.gson.annotations.Expose;

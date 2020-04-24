@@ -19,9 +19,10 @@ public class UsersController {
         this.userRepository = userRepository;
     }
 
+    // success
     @GetMapping
     @ResponseBody
-    public String/*JsonArray*/ getUserList() {
+    public String getUserList() {
 
         /*JsonArray usersInJson = new JsonArray();
 
@@ -48,6 +49,7 @@ public class UsersController {
 
     }
 
+    //succes
     @RequestMapping(value = "{name}", method = RequestMethod.GET)
     @ResponseBody
     public String getUser(@PathVariable (name = "name") String name) {
@@ -58,8 +60,6 @@ public class UsersController {
         String response = gson.toJson(userByName);
 
         return response;
-
-
 
     }
 
