@@ -78,21 +78,20 @@ public class RegistrationController {
                           @RequestParam String password,
                           @RequestParam String email,
                           Map<String, Object> model) {
-        User userFromDb =  userRepository.findByUsername(username);
 
-        if (userFromDb != null) {
-            // нужно сделать отображение на экране при помощи thymeleaf
-            // model.put("message", "User already exists!");
+
+        User user1 = new User();
+        user1.setUsername(username);
+        user1.setPassword(password);
+        user1.setEmail(email);
+
+        if (!userService.addUser(user1)) {
+            //model.addAttribute("message", "User already exists!");
             System.out.println("user already exists!");
             return "redirect:/registration";
+
         }
 
-        User newUser = new User(username, password, email);
-        Set<Role> roles = new HashSet<>();
-        roles.add(Role.USER);
-        roles.add(Role.ADMIN);
-        newUser.setRoles(roles);
-        userRepository.save(newUser);
 
         return "redirect:/login";
     }
