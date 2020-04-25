@@ -185,8 +185,8 @@ public class SharingFileController {
 
 
     @PostMapping(value = "/file/read/{filename}")
-    public String updAccessListWithJson( @RequestBody UserAccess userAccess,
-                                         @PathVariable("filename") String filename) {
+    public String updReadListWithJson( @RequestBody UserAccess userAccess,
+                                       @PathVariable("filename") String filename) {
 
         Gson gson = new Gson();
         Response response = new Response();
@@ -273,6 +273,48 @@ public class SharingFileController {
                                 }
                             }
                         }
+
+                        ArrayList<Username> usernameForShare = userAccess.getUsernameForShare();
+
+                        boolean userInAccessList = false;
+
+                        if (usernameForShare != null) {
+                            for (int i = 0; i < usernameForShare.size(); i++) {
+
+                                User newUser = userRepository.findByUsername(usernameForShare.get(i).getUsername());
+                                // проверка на то, что пользователь из списка вообще существует
+                                if (newUser != null) {
+
+                                    for (String userInAccess : existsUserInAccessList) {
+                                        // проверка на то, что пользователя нет в списке тех, кому разрешён доступ
+                                        if (usernameForShare.get(i).getUsername().equals(userInAccess)) {
+                                            userInAccessList = true;
+                                            break;
+                                        }
+                                    }
+                                    // если пользователя нет в списке тех, кому разрешён доступ, то его вносят в список доступа.
+                                    if (!userInAccessList) {
+                                        existsUserInAccessList.add(newUser.getUsername());
+                                    }
+                                    // в любом случае помещаем пользователя в список тех, кому успешно разрешён доступ
+                                    responseWithoutError.add(usernameForShare.get(i)) ;
+                                    userInAccessList = false;
+
+                                }
+
+                                else {
+                                    responseWithError.add(usernameForShare.get(i));
+                                }
+
+                            }
+                        }
+                        else {
+                            response.setStatus("error");
+                            response.setDescription("userlist is empty");
+                            String responseString = gson.toJson(response);
+                            return responseString;
+                        }
+
 
                     }
 

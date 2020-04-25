@@ -25,7 +25,7 @@ public class RegistrationController {
 
     @Autowired
     UserRepository userRepository;
-
+/*
     @GetMapping(value = "/registration")
     public String registration(Model model) {
 
@@ -33,30 +33,23 @@ public class RegistrationController {
         model.addAttribute("userForm", userForm);
 
         return "users/registration";
-    }
+    }*/
 
-    //success только чекнуть что с постом
-    /*@PostMapping(value = "/registration"
-     *//*headers = {"Content-type=application/json"}*//*)
+    //success
+    @PostMapping(value = "/registration",
+     headers = {"Content-type=application/json"})
     public @ResponseBody String addUser(@RequestBody UserJSON user) {
 
         String response;
-
         Gson gson = new Gson();
-
         Response answer = new Response();
 
         User user1 = new User();
         user1.setUsername(user.getUsername());
         user1.setPassword(user.getPassword());
         user1.setEmail(user.getEmail());
-        //gson.fromJson(, UserJSON.class);
-
-
 
         if (!userService.addUser(user1)) {
-            //model.addAttribute("message", "User already exists!");
-            //System.out.println("user already exists!");
             answer.setDescription("User already exists!");
             answer.setStatus("error");
             response = gson.toJson(answer);
@@ -66,14 +59,13 @@ public class RegistrationController {
 
         answer.setStatus("ok");
         answer.setDescription("User create");
-
         response = gson.toJson(answer);
 
         return response;
-    }*/
+    }
 
 
-    @PostMapping(value = "/registration")
+    /*@PostMapping(value = "/registration")
     public String addUser(@RequestParam String username,
                           @RequestParam String password,
                           @RequestParam String email,
@@ -94,7 +86,7 @@ public class RegistrationController {
 
 
         return "redirect:/login";
-    }
+    }*/
 
     //success
     @GetMapping("/activate/{code}")

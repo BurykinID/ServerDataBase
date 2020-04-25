@@ -14,7 +14,7 @@ public class LoginController {
     @Autowired
     private UserRepository userRepository;
 
-    @GetMapping("/login")
+    /*@GetMapping("/login")
     public String getLoginForm() {
         return "users/login";
     }
@@ -26,11 +26,10 @@ public class LoginController {
         User user = userRepository.findByUsername(username);
 
         if ((user.getActivationCode() == null) && (user.getPassword().equals(password))) {
-            /*System.out.println("я тут");*/
             return "redirect:/listFile";
         }
 
         return "redirect:/login";
-    }
+    }*/
 
 }
