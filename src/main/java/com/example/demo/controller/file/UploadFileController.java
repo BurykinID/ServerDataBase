@@ -3,13 +3,11 @@ package com.example.demo.controller.file;
 import com.example.demo.Validator.Calc;
 import com.example.demo.entity.File;
 import com.example.demo.entity.User;
-import com.example.demo.forJsonObject.ElObj.Rules;
 import com.example.demo.forJsonObject.Response;
 import com.example.demo.form.FileForm;
 import com.example.demo.repository.FileRepository;
 import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
-import org.dom4j.rule.Rule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,23 +16,31 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
-import java.util.HashMap;
 
+//@RestController
 @Controller
 public class UploadFileController {
 
-    @Autowired
-    private FileRepository fileRepository;
 
+    private final FileRepository fileRepository;
+
+    String upl = null;
+
+    public UploadFileController (FileRepository fileRepository) {
+        this.fileRepository = fileRepository;
+    }
 
     @Value("${upload.path}")
     private String uploadPath;
 
-    @GetMapping(value = "/addFile")
+    @GetMapping("/addFile")
     public String showAddPersonPage(Model model) {
 
         FileForm fileForm = new FileForm();
@@ -47,8 +53,6 @@ public class UploadFileController {
     @ResponseBody
     public String saveFile( @AuthenticationPrincipal User user,
                             @RequestParam("filename") MultipartFile file,
-                            @RequestParam String type,
-                            @RequestParam String parent,
                             @RequestParam String tag) throws IOException {
 
         File newFile = null;
@@ -141,12 +145,43 @@ public class UploadFileController {
             accessList.add(user.getUsername());
 
             ArrayList<String> tags = new ArrayList<>();
-            tags.add("#тест");
-            
 
-            newFile = new File(uploadFileName, type, uploadSize, uploadDate, parent, user.getUsername(), user.getUsername(), uploadPathFile, tags, accessList);
-            file.transferTo(new java.io.File(uploadPathFile.toString()));
+            try {
+                tag = tag.replaceAll(" ", "");
+                String[] userTags = tag.split(",");
+                for (String tagAboutUser : userTags) {
+                    tags.add(tagAboutUser);
+                }
+            }
+            catch (ArrayIndexOutOfBoundsException e) {
+                tags.add(tag.trim());
+            }
 
+            //tags.add("#тест");
+
+//<-- на релизе надо выпилить
+            //byte[]fileContent = FileUtils.readFileToByteArray(new java.io.File());
+            String encodedString = Base64.getEncoder().encodeToString(file.getBytes());
+            System.out.println(encodedString);
+            if (upl != null){
+                if (upl.equals(encodedString))
+                    System.out.println(true);
+                else
+                    System.out.println(false);
+            }
+            upl = encodedString;
+// на релизе надо выпилить -->
+            newFile = new File(uploadFileName, "File", uploadSize, uploadDate, user.getUsername(), user.getUsername(), uploadPathFile, tags, accessList);
+            //<-- на релизе выпилить
+            file.transferTo(new java.io.File(uploadPathFile));
+            // -->
+            try{
+                byte[] decodedBytes = Base64.getDecoder().decode(upl);
+                Files.write(Paths.get(uploadPath + "filetest.docx"), decodedBytes);
+            }
+            catch (IOException e) {
+                System.out.println("error");
+            }
 
         }
 
@@ -173,57 +208,9 @@ public class UploadFileController {
         return responseString;
     }
 
-    // success, но надо обсудить
-    @GetMapping(value = {"/getfile/{filename}"})
-    @ResponseBody
-    public String getFile(@PathVariable (name = "filename") String filename) {
 
-        File file = fileRepository.findByFilename(filename);
 
-        Gson gson = new Gson();
-        Response response = new Response();
 
-        try {
-            byte[]fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
-            String encodedString = Base64.getEncoder().encodeToString(fileContent);
-            String responseString = gson.toJson(encodedString);
-            return responseString;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        response.setStatus("error");
-        response.setDescription("error with encode Base 64");
-
-        String responseString = gson.toJson(response);
-
-        return responseString;
-
-    }
-
-    /*
-    only for test with docker
-
-    @GetMapping(value = {"/check"})
-    public String checkFile() {
-
-        try {
-            BufferedReader bufferedReader = new BufferedReader( new FileReader("/var/lib/postgresql/data/aaaa.txt"));
-            try {
-                String s = null;
-                while ((s = bufferedReader.readLine()) != null) {
-                    System.out.println(s);
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        return "check.html";
-    }*/
 
 }
 

@@ -2,30 +2,24 @@ package com.example.demo.controller.user;
 
 import com.example.demo.entity.User;
 import com.example.demo.forJsonObject.Response;
-import com.example.demo.forJsonObject.UserJSON;
-import com.example.demo.form.UserForm;
+import com.example.demo.forJsonObject.user.UserJSON;
 import com.example.demo.repository.UserRepository;
-import com.example.demo.role.Role;
 import com.example.demo.service.UserService;
 import com.google.gson.Gson;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-@Controller
+@RestController
 public class RegistrationController {
 
-    @Autowired
-    private UserService userService;
 
-    @Autowired
-    UserRepository userRepository;
-/*
+    private final UserService userService;
+    private final UserRepository userRepository;
+
+    public RegistrationController (UserService userService, UserRepository userRepository) {
+        this.userService = userService;
+        this.userRepository = userRepository;
+    }
+    /*
     @GetMapping(value = "/registration")
     public String registration(Model model) {
 
@@ -34,11 +28,9 @@ public class RegistrationController {
 
         return "users/registration";
     }*/
-
     //success
-    @PostMapping(value = "/registration",
-     headers = {"Content-type=application/json"})
-    public @ResponseBody String addUser(@RequestBody UserJSON user) {
+    @PostMapping(value = "/registration")
+    public String addUser(@RequestBody UserJSON user) {
 
         String response;
         Gson gson = new Gson();
@@ -63,8 +55,6 @@ public class RegistrationController {
 
         return response;
     }
-
-
     /*@PostMapping(value = "/registration")
     public String addUser(@RequestParam String username,
                           @RequestParam String password,
@@ -87,10 +77,9 @@ public class RegistrationController {
 
         return "redirect:/login";
     }*/
-
     //success
-    @GetMapping("/activate/{code}")
-    public @ResponseBody String activate(/*Model model,*/@PathVariable(name = "code") String code) {
+    @GetMapping(value = "/activate/{code}")
+    public String activate(@PathVariable(name = "code") String code) {
 
         boolean isActivated = userService.activateUser(code);
 

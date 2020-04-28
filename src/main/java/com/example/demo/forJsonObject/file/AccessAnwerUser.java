@@ -1,4 +1,6 @@
-package com.example.demo.forJsonObject;
+package com.example.demo.forJsonObject.file;
+
+import com.example.demo.forJsonObject.user.Username;
 
 import java.util.ArrayList;
 
@@ -18,8 +20,8 @@ import java.util.ArrayList;
 */
 public class AccessAnwerUser {
 
-    ArrayList<Username> userWithoutError;
-    ArrayList<Username> userWithError;
+    private ArrayList<Username> userWithoutError;
+    private ArrayList<Username> userWithError;
 
     public AccessAnwerUser () {
     }

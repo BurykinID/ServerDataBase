@@ -4,7 +4,6 @@ import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.role.Role;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.MailSender;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -41,12 +39,12 @@ public class UserService implements UserDetailsService {
             return false;
         }
 
-      /*  userFromDb = userRepository.findByEmail(user.getEmail());
+        userFromDb = userRepository.findByEmail(user.getEmail());
 
         if (userFromDb != null) {
             return false;
         }
-*/
+
         Set<Role> roles = new HashSet<>();
         roles.add(Role.USER);
         //roles.add(Role.ADMIN);
@@ -59,13 +57,6 @@ public class UserService implements UserDetailsService {
 
             String message = "Hello, " + user.getUsername() + "!\n" +
                     "Welcome to Service. Please, visit to next link for activate your account: http://localhost:8080/activate/" + user.getActivationCode();
-            /*String.format(
-                    "Hello, %s! \n",
-                        "Welcome to Service. Please, visit to next link: http://localhost:8080/activate/%s",
-                    user.getUsername(),
-                    user.getActivationCode()
-
-            );*/
 
             mailSender.send(user.getEmail(), "Activation code", message);
         }
@@ -73,7 +64,6 @@ public class UserService implements UserDetailsService {
         return true;
 
     }
-
 
     public boolean activateUser (String code) {
 
@@ -89,4 +79,5 @@ public class UserService implements UserDetailsService {
 
         return true;
     }
+
 }

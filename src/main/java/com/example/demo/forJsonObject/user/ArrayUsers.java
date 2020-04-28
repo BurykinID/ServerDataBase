@@ -1,11 +1,11 @@
-package com.example.demo.forJsonObject;
+package com.example.demo.forJsonObject.user;
 
 import java.util.ArrayList;
 
 // для
 public class ArrayUsers {
 
-    ArrayList<String> userByName;
+    private ArrayList<String> userByName;
 
     public ArrayUsers () {
     }

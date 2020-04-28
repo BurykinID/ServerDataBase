@@ -2,8 +2,8 @@ package com.example.demo.forJsonObject;
 
 public class Response {
 
-    String status;
-    String description;
+    private String status;
+    private String description;
 
     public Response () {
     }

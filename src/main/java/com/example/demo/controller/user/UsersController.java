@@ -2,15 +2,14 @@ package com.example.demo.controller.user;
 
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
-import com.example.demo.forJsonObject.ArrayUsers;
+import com.example.demo.forJsonObject.user.ArrayUsers;
 import com.google.gson.Gson;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 
-@Controller
-@RequestMapping("userList")
+@RestController
+@RequestMapping("listUser")
 public class UsersController {
 
     private final UserRepository userRepository;
@@ -21,7 +20,6 @@ public class UsersController {
 
     // success
     @GetMapping
-    @ResponseBody
     public String getUserList() {
 
         /*JsonArray usersInJson = new JsonArray();
@@ -50,8 +48,7 @@ public class UsersController {
     }
 
     //succes
-    @RequestMapping(value = "{name}", method = RequestMethod.GET)
-    @ResponseBody
+    @GetMapping(value = "{name}")
     public String getUser(@PathVariable (name = "name") String name) {
 
         Gson gson = new Gson();

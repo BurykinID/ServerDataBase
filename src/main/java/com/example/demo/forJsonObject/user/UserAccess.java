@@ -1,11 +1,11 @@
-package com.example.demo.forJsonObject;
+package com.example.demo.forJsonObject.user;
 
 import java.util.ArrayList;
 
 public class UserAccess {
 
-    String username;
-    ArrayList<Username> usernameForShare;
+    private String username;
+    private ArrayList<Username> usernameForShare;
 
     public UserAccess () {
     }

@@ -2,9 +2,9 @@ package com.example.demo.forJsonObject.ElObj;
 
 public class Rules {
 
-     short read;
-     short write;
-     short delete;
+     private short read;
+     private short write;
+     private short delete;
 
      public Rules () {
      }

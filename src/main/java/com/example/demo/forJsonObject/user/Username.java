@@ -1,4 +1,4 @@
-package com.example.demo.forJsonObject;
+package com.example.demo.forJsonObject.user;
 
 // для Json конструкции вида [
 // { "username" : "value"},
@@ -6,7 +6,7 @@ package com.example.demo.forJsonObject;
 // ]
 public class Username {
 
-    String username;
+    private String username;
 
     public Username () {
     }

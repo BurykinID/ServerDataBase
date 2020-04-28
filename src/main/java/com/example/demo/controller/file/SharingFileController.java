@@ -2,23 +2,22 @@ package com.example.demo.controller.file;
 
 import com.example.demo.entity.File;
 import com.example.demo.entity.User;
-import com.example.demo.forJsonObject.AccessAnwerUser;
+import com.example.demo.forJsonObject.file.AccessAnwerUser;
 import com.example.demo.forJsonObject.Response;
-import com.example.demo.forJsonObject.UserAccess;
-import com.example.demo.forJsonObject.Username;
+import com.example.demo.forJsonObject.user.UserAccess;
+import com.example.demo.forJsonObject.user.Username;
 import com.example.demo.form.FileForm;
 import com.example.demo.repository.FileRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.role.Role;
 import com.google.gson.Gson;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.Set;
 
-@Controller
+@RestController
 public class SharingFileController {
 
     private final FileRepository fileRepository;
@@ -182,8 +181,6 @@ public class SharingFileController {
         return "redirect:/listFile";
     }*/
 
-
-
     @PostMapping(value = "/file/read/{filename}")
     public String updReadListWithJson( @RequestBody UserAccess userAccess,
                                        @PathVariable("filename") String filename) {
@@ -314,8 +311,6 @@ public class SharingFileController {
                             String responseString = gson.toJson(response);
                             return responseString;
                         }
-
-
                     }
 
                 }
