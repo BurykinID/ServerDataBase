@@ -171,7 +171,7 @@ public class UploadFileController {
             }
             upl = encodedString;
 // на релизе надо выпилить -->
-            newFile = new File(uploadFileName, "File", uploadSize, uploadDate, user.getUsername(), user.getUsername(), uploadPathFile, tags, accessList);
+            newFile = new File(uploadFileName, uploadSize, uploadDate, user.getUsername(), user.getUsername(), uploadPathFile, tags, accessList);
             //<-- на релизе выпилить
             file.transferTo(new java.io.File(uploadPathFile));
             // -->
