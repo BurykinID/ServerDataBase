@@ -1,3 +1,4 @@
+/*
 package com.example.demo.config;
 
 import com.example.demo.service.UserService;
@@ -42,3 +43,4 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 
 }
+*/

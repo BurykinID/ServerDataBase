@@ -43,7 +43,6 @@ public class LoginController {
 
         User user = userRepository.findByUsername(userLogin.getUsername());
 
-
         if (user.getActivationCode() != null) {
             errorMessge = "User is inactive";
         }

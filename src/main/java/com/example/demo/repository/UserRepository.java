@@ -1,27 +1,20 @@
 package com.example.demo.repository;
 
 import com.example.demo.entity.User;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.ArrayList;
-import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
     User findByUsername (String username);
-
     User findByActivationCode (String code);
-
     User findByEmail (String email);
-
     User findById(UUID uuid);
-
     ArrayList<User> findAll();
-
     @Query ("select usr.username from User usr where usr.username like CONCAT(:partName, '%')")
     ArrayList<String> findByPartName(@Param("partName") String partName);
 

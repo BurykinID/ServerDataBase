@@ -1,5 +1,6 @@
 package com.example.demo.controller.file;
 
+import com.example.demo.entity.Access;
 import com.example.demo.entity.File;
 import com.example.demo.entity.User;
 import com.example.demo.forJsonObject.file.AccessAnwerUser;
@@ -7,6 +8,7 @@ import com.example.demo.forJsonObject.Response;
 import com.example.demo.forJsonObject.user.UserAccess;
 import com.example.demo.forJsonObject.user.Username;
 import com.example.demo.form.FileForm;
+import com.example.demo.repository.AccessRepository;
 import com.example.demo.repository.FileRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.role.Role;
@@ -15,6 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Set;
 
 @RestController
@@ -22,15 +25,18 @@ public class SharingFileController {
 
     private final FileRepository fileRepository;
     private final UserRepository userRepository;
+    private final AccessRepository accessRepository;
     private ArrayList<String> errorUser;
 
     public SharingFileController(FileRepository fileRepository,
-                                 UserRepository userRepository) {
+                                 UserRepository userRepository,
+                                 AccessRepository accessRepository) {
         this.fileRepository = fileRepository;
         this.userRepository = userRepository;
+        this.accessRepository = accessRepository;
     }
 
-    @GetMapping(value = "/file/{filename}")
+    /*@GetMapping(value = "/file/{filename}")
     public String getFile(@PathVariable("filename") String filename,
                           Model model) {
 
@@ -41,144 +47,6 @@ public class SharingFileController {
         model.addAttribute("fileForm", fileForm);
 
         return "access/insertUserInAccessList";
-    }
-
-   /* @PostMapping(value = "/file/{filename}")
-    public String updateAccessList( @AuthenticationPrincipal User user,
-                                    @PathVariable("filename") String filename,
-                                    @RequestParam(name = "read", required = false) String accessList,
-                                    @RequestParam(name = "write", required = false) String writeList,
-                                    @RequestParam(name = "delete", required = false) String deleteList) {
-
-        // права доступа read, write, shared, delete.
-
-        File file = fileRepository.findByFilename(filename);
-
-        errorUser = new ArrayList<>();
-
-        String author = user.getUsername();
-
-        ArrayList<HashMap<String, Rules>> newAccessList = file.getAccessList();
-        // список пользователей, которым разрешено читать
-
-
-
-        if (accessList != null && accessList.length() > 0) {
-
-            ArrayList<String> updAccessListUser = new ArrayList<>();
-
-            try{
-                String[] updAccessList = accessList.split(", ");
-                updAccessListUser.addAll(updAccessList(updAccessList, author, updAccessListUser));
-            }
-            catch (NullPointerException exp) {
-                updAccessListUser.addAll(updAccessString(accessList, updAccessListUser, author));
-            }
-
-            if (updAccessListUser.size() > 0)
-                newAccessList.addAll(updAccessListUser);
-        }
-        // список пользователей, которым разрешено изменять
-        if (writeList != null && writeList.length() > 0) {
-
-            ArrayList<String> updAccessListUser = new ArrayList<>();
-
-            try {
-                String[] updWriteList = writeList.split(", ");
-                updAccessListUser.addAll(updAccessList(updWriteList, author, updAccessListUser));
-            }
-            catch (NullPointerException e) {
-                updAccessListUser.addAll(updAccessString(author, updAccessListUser, writeList));
-            }
-
-            if (updAccessListUser.size() > 0)
-                newAccessList.addAll(updAccessListUser);
-
-        }
-        // список пользователей, которым разрешено удалять
-        if (deleteList != null && deleteList.length() > 0) {
-
-            ArrayList<String> updAccessListUser = new ArrayList<>();
-
-            try{
-                String[] updDeleteList  = deleteList.split(", ");
-                updAccessList(updDeleteList, author, updAccessListUser);
-            }
-            catch (NullPointerException exp) {
-                updAccessListUser = updAccessString(author, updAccessListUser, deleteList);
-            }
-
-            if (updAccessListUser.size() > 0)
-                newAccessList.addAll(updAccessListUser);
-
-        }
-
-            *//*boolean isExists = false;
-
-            if (updAccessList.length > 1) {
-
-                for (String list : updAccessList) {
-
-                    User findUser = userRepository.findByUsername(list);
-
-                    if (findUser != null) {
-                        if (!list.equals(author)) {
-                            for (String exAccessList : newAccessList) {
-                                if (list.equals(exAccessList)) {
-                                    isExists = true;
-                                    break;
-                                }
-                            }
-                            if (!isExists) {
-                                newAccessList.add(list);
-                                isExists = false;
-                            }
-
-                        }
-
-                    }
-                    else {
-                        System.out.println("пользователя нет");
-                        return "redirect:/file/{filename}";
-                    }
-
-                }
-
-            }
-            else {
-
-                User findUser = userRepository.findByUsername(accessList);
-
-                if (findUser != null) {
-
-                    if (!accessList.equals(author)) {
-                        for (String exAccessList : newAccessList) {
-                            if (accessList.equals(exAccessList)) {
-                                isExists = true;
-                                break;
-                            }
-                        }
-                        if (!isExists) {
-                            newAccessList.add(accessList);
-                            isExists = false;
-                        }
-
-                    }
-
-                }
-
-                else {
-                    System.out.println("пользователя нет");
-                    return "redirect:/file/{filename}";
-                }
-
-            }*//*
-
-
-            file.setAccessList(newAccessList);
-            fileRepository.save(file);
-
-        return "redirect:/listFile";
     }*/
 
     @PostMapping(value = "/file/read/{filename}")
@@ -192,7 +60,6 @@ public class SharingFileController {
         ArrayList<Username> responseWithError = new ArrayList<>();
         AccessAnwerUser accessAnwerUser = new AccessAnwerUser();
 
-
         if (userAccess != null) {
             String username = userAccess.getUsername();
 
@@ -201,23 +68,20 @@ public class SharingFileController {
             User user = userRepository.findByUsername(username);
             File file = fileRepository.findByFilename(filename);
 
-            Set<Role> roles = user.getRoles();
-            for (Role role : roles) {
-                if (role.equals(Role.ADMIN)) {
-                    isAdmin = true;
-                    break;
-                }
-            }
-            if (file != null) {
-                if (file.getAuthor().equals(username) || isAdmin) {
+            if (user != null) {
+                if (file != null) {
+                    boolean isAuthor = file.getAuthor().equals(username);
 
-                    ArrayList<String> existsUserInAccessList = file.getAccessList();
-                    // проверка того, что список пользователей, имеющих доступ к файлу уже существует
-                    if (existsUserInAccessList != null) {
+                    if (!isAuthor) {
+                        Set<Role> roles = user.getRoles();
+                        if (roles.contains(Role.ADMIN)) {
+                            isAdmin = true;
+                        }
+                    }
+
+                    if (isAuthor || isAdmin) {
                         // получение списка пользователей, для которых необходимо расширить доступ на чтение файла.
                         ArrayList<Username> usernameForShare = userAccess.getUsernameForShare();
-
-                        boolean userInAccessList = false;
 
                         if (usernameForShare != null) {
                             for (int i = 0; i < usernameForShare.size(); i++) {
@@ -225,29 +89,34 @@ public class SharingFileController {
                                 User newUser = userRepository.findByUsername(usernameForShare.get(i).getUsername());
                                 // проверка на то, что пользователь из списка вообще существует
                                 if (newUser != null) {
-
-                                    for (String userInAccess : existsUserInAccessList) {
-                                        // проверка на то, что пользователя нет в списке тех, кому разрешён доступ
-                                        if (usernameForShare.get(i).getUsername().equals(userInAccess)) {
-                                            userInAccessList = true;
-                                            break;
-                                        }
-                                    }
                                     // если пользователя нет в списке тех, кому разрешён доступ, то его вносят в список доступа.
-                                    if (!userInAccessList) {
-                                        existsUserInAccessList.add(newUser.getUsername());
+                                    Access access = accessRepository.findByUsernameAndFilename(newUser.getUsername(), filename);
+
+                                    if (access != null) {
+                                        int lvlAccess = Integer.parseInt(access.getAccess());
+                                        if (lvlAccess < 1)
+                                            access.setAccess("1");
                                     }
+                                    else {
+                                        String lvlAccess = "1";
+                                        access = new Access(file.getFilename(), newUser.getUsername(), lvlAccess);
+                                    }
+                                    accessRepository.save(access);
+
                                     // в любом случае помещаем пользователя в список тех, кому успешно разрешён доступ
                                     responseWithoutError.add(usernameForShare.get(i)) ;
-                                    userInAccessList = false;
 
                                 }
-
                                 else {
                                     responseWithError.add(usernameForShare.get(i));
                                 }
-
                             }
+
+                            accessAnwerUser.setUserWithError(responseWithError);
+                            accessAnwerUser.setUserWithoutError(responseWithoutError);
+                            String responseString = gson.toJson(accessAnwerUser);
+                            return responseString;
+
                         }
                         else {
                             response.setStatus("error");
@@ -258,84 +127,42 @@ public class SharingFileController {
 
                     }
                     else {
-
-                        existsUserInAccessList = new ArrayList<>();
-                        existsUserInAccessList.add(file.getAuthor());
-                        for (User user1 : userRepository.findAll()) {
-                            Set<Role> roleSet = user1.getRoles();
-                            for (Role role : roleSet) {
-                                if (role.equals(Role.ADMIN)) {
-                                    existsUserInAccessList.add(user1.getUsername());
-                                    break;
-                                }
-                            }
-                        }
-
-                        ArrayList<Username> usernameForShare = userAccess.getUsernameForShare();
-
-                        boolean userInAccessList = false;
-
-                        if (usernameForShare != null) {
-                            for (int i = 0; i < usernameForShare.size(); i++) {
-
-                                User newUser = userRepository.findByUsername(usernameForShare.get(i).getUsername());
-                                // проверка на то, что пользователь из списка вообще существует
-                                if (newUser != null) {
-
-                                    for (String userInAccess : existsUserInAccessList) {
-                                        // проверка на то, что пользователя нет в списке тех, кому разрешён доступ
-                                        if (usernameForShare.get(i).getUsername().equals(userInAccess)) {
-                                            userInAccessList = true;
-                                            break;
-                                        }
-                                    }
-                                    // если пользователя нет в списке тех, кому разрешён доступ, то его вносят в список доступа.
-                                    if (!userInAccessList) {
-                                        existsUserInAccessList.add(newUser.getUsername());
-                                    }
-                                    // в любом случае помещаем пользователя в список тех, кому успешно разрешён доступ
-                                    responseWithoutError.add(usernameForShare.get(i)) ;
-                                    userInAccessList = false;
-
-                                }
-
-                                else {
-                                    responseWithError.add(usernameForShare.get(i));
-                                }
-
-                            }
-                        }
-                        else {
-                            response.setStatus("error");
-                            response.setDescription("userlist is empty");
-                            String responseString = gson.toJson(response);
-                            return responseString;
-                        }
+                        response.setStatus("error");
+                        response.setDescription("not enough right");
+                        String responseString = gson.toJson(response);
+                        return responseString;
                     }
-
                 }
                 else {
                     response.setStatus("error");
-                    response.setDescription("not enough right");
+                    response.setDescription("File does not exists");
                     String responseString = gson.toJson(response);
                     return responseString;
                 }
             }
+            else if (file != null) {
+                response.setStatus("error");
+                response.setDescription("Username does not found.");
+                String responseString = gson.toJson(response);
+                return responseString;
+            }
             else {
                 response.setStatus("error");
-                response.setDescription("file doesn't exists");
+                response.setDescription("Username and file do not found.");
                 String responseString = gson.toJson(response);
                 return responseString;
             }
 
-
+        }
+        else {
+            response.setStatus("error");
+            response.setDescription("Я не получил никакой информации");
+            String responseString = gson.toJson(response);
+            return responseString;
         }
 
-        String responseString = gson.toJson(accessAnwerUser);
-
-        return responseString;
-
     }
+
 
     /*@PostMapping(value = "/file/write/{filename}")
     public String updAccessListWithJson(@ResponseBody ArrayUsers arrayUsers) {
@@ -346,73 +173,5 @@ public class SharingFileController {
     public String updAccessListWithJson(@ResponseBody ArrayUsers arrayUsers) {
         return "";
     }*/
-
-    //когда 1 юзер
-    public ArrayList<String> updAccessString(String author, ArrayList<String> newAccessList, String accessList) {
-
-        boolean isExists = false;
-
-        User findUser = userRepository.findByUsername(accessList);
-
-        if (findUser != null) {
-
-            if (!accessList.equals(author)) {
-                for (String exAccessList : newAccessList) {
-                    if (accessList.equals(exAccessList)) {
-                        isExists = true;
-                        break;
-                    }
-                }
-                if (!isExists) {
-                    newAccessList.add(accessList);
-                }
-            }
-
-        }
-        else {
-            System.out.println("пользователя нет");
-            errorUser.add(accessList);
-        }
-
-        return newAccessList;
-
-    }
-
-    //когда несколько юзеров
-    public ArrayList<String> updAccessList(String[] updAccessList, String author, ArrayList<String> newAccessList ) {
-
-        boolean isExists = false;
-
-        for (String list : updAccessList) {
-
-            User findUser = userRepository.findByUsername(list);
-
-            if (findUser != null) {
-                if (!list.equals(author)) {
-                    for (String exAccessList : newAccessList) {
-                        if (list.equals(exAccessList)) {
-                            isExists = true;
-                            break;
-                        }
-                    }
-                    if (!isExists) {
-                        newAccessList.add(list);
-                        isExists = false;
-                    }
-
-                }
-
-            }
-            else {
-                System.out.println("пользователя нет");
-                errorUser.add(list);
-            }
-
-        }
-
-        return newAccessList;
-
-    }
-
 
 }

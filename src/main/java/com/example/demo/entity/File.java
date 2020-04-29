@@ -34,7 +34,7 @@ public class File {
     private String editor;
     private String path;
     private ArrayList<String> tag;
-    private ArrayList<String> accessList;
+    //private ArrayList<String> accessList;
 
     public File (String filename,
                  //String type,
@@ -44,8 +44,9 @@ public class File {
                  String author,
                  String editor,
                  String path,
-                 ArrayList<String> tag,
-                 ArrayList<String> accessList) {
+                 ArrayList<String> tag
+                 //ArrayList<String> accessList
+                 ) {
         this.filename = filename;
         //this.type = type;
         this.size = size;
@@ -55,7 +56,7 @@ public class File {
         this.editor = editor;
         this.path = path;
         this.tag = tag;
-        this.accessList = accessList;
+        //this.accessList = accessList;
     }
 
 }
