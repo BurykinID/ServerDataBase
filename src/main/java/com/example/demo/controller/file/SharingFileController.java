@@ -5,6 +5,7 @@ import com.example.demo.entity.File;
 import com.example.demo.entity.User;
 import com.example.demo.forJsonObject.file.AccessAnwerUser;
 import com.example.demo.forJsonObject.Response;
+import com.example.demo.forJsonObject.user.ArrayUsers;
 import com.example.demo.forJsonObject.user.UserAccess;
 import com.example.demo.forJsonObject.user.Username;
 import com.example.demo.form.FileForm;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
+
+import static com.example.demo.role.Role.ADMIN;
 
 @RestController
 public class SharingFileController {
@@ -53,9 +56,27 @@ public class SharingFileController {
     public String updReadListWithJson( @RequestBody UserAccess userAccess,
                                        @PathVariable("filename") String filename) {
 
+        return updPermit(userAccess, filename, "1");
+
+    }
+
+    @PostMapping(value = "/file/write/{filename}")
+    public String updWriteListWithJson(@RequestBody UserAccess userAccess,
+                                       @PathVariable("filename") String filename) {
+
+        return updPermit(userAccess, filename, "2");
+
+    }
+
+    @PostMapping(value = "/file/delete/{filename}")
+    public String updDeleteListWithJson(@RequestBody UserAccess userAccess,
+                                        @PathVariable("filename") String filename) {
+        return updPermit(userAccess, filename, "3");
+    }
+
+    public String updPermit(UserAccess userAccess, String filename, String lvlAccessInput) {
         Gson gson = new Gson();
         Response response = new Response();
-
         ArrayList<Username> responseWithoutError = new ArrayList<>();
         ArrayList<Username> responseWithError = new ArrayList<>();
         AccessAnwerUser accessAnwerUser = new AccessAnwerUser();
@@ -73,10 +94,7 @@ public class SharingFileController {
                     boolean isAuthor = file.getAuthor().equals(username);
 
                     if (!isAuthor) {
-                        Set<Role> roles = user.getRoles();
-                        if (roles.contains(Role.ADMIN)) {
-                            isAdmin = true;
-                        }
+                        isAdmin = checkAdmin(username);
                     }
 
                     if (isAuthor || isAdmin) {
@@ -89,22 +107,27 @@ public class SharingFileController {
                                 User newUser = userRepository.findByUsername(usernameForShare.get(i).getUsername());
                                 // проверка на то, что пользователь из списка вообще существует
                                 if (newUser != null) {
-                                    // если пользователя нет в списке тех, кому разрешён доступ, то его вносят в список доступа.
-                                    Access access = accessRepository.findByUsernameAndFilename(newUser.getUsername(), filename);
 
-                                    if (access != null) {
-                                        int lvlAccess = Integer.parseInt(access.getAccess());
-                                        if (lvlAccess < 1)
-                                            access.setAccess("1");
+                                    if (!checkAdmin(newUser.getUsername())) {
+
+                                        Access access = accessRepository.findByUsernameAndFilename(newUser.getUsername(), filename);
+
+                                        if (access != null) {
+                                            int lvlAccess = Integer.parseInt(access.getAccess());
+                                            int lvlAccessInt = Integer.parseInt(lvlAccessInput);
+                                            if (lvlAccess < lvlAccessInt)
+                                                access.setAccess(lvlAccessInput);
+                                        }
+                                        else {
+                                            access = new Access(file.getFilename(), newUser.getUsername(), lvlAccessInput);
+                                        }
+                                        accessRepository.save(access);
+                                        // в любом случае помещаем пользователя в список тех, кому успешно разрешён доступ
+                                        responseWithoutError.add(usernameForShare.get(i));
                                     }
                                     else {
-                                        String lvlAccess = "1";
-                                        access = new Access(file.getFilename(), newUser.getUsername(), lvlAccess);
+                                        responseWithoutError.add(usernameForShare.get(i));
                                     }
-                                    accessRepository.save(access);
-
-                                    // в любом случае помещаем пользователя в список тех, кому успешно разрешён доступ
-                                    responseWithoutError.add(usernameForShare.get(i)) ;
 
                                 }
                                 else {
@@ -119,59 +142,42 @@ public class SharingFileController {
 
                         }
                         else {
-                            response.setStatus("error");
-                            response.setDescription("userlist is empty");
-                            String responseString = gson.toJson(response);
-                            return responseString;
+                            return printError("error", "Userlist пуст", response);
                         }
-
                     }
                     else {
-                        response.setStatus("error");
-                        response.setDescription("not enough right");
-                        String responseString = gson.toJson(response);
-                        return responseString;
+                        return printError("error", "Не достаточно прав", response);
                     }
                 }
                 else {
-                    response.setStatus("error");
-                    response.setDescription("File does not exists");
-                    String responseString = gson.toJson(response);
-                    return responseString;
+                    return printError("error", "Файл не существует", response);
                 }
             }
             else if (file != null) {
-                response.setStatus("error");
-                response.setDescription("Username does not found.");
-                String responseString = gson.toJson(response);
-                return responseString;
+                return printError("error", "Пользователь не существуют", response);
             }
             else {
-                response.setStatus("error");
-                response.setDescription("Username and file do not found.");
-                String responseString = gson.toJson(response);
-                return responseString;
+                return printError("error", "Пользователь и файл не существуют", response);
             }
-
         }
         else {
-            response.setStatus("error");
-            response.setDescription("Я не получил никакой информации");
-            String responseString = gson.toJson(response);
-            return responseString;
+            return printError("error", "Я не получил никакой информации", response);
         }
-
     }
 
-
-    /*@PostMapping(value = "/file/write/{filename}")
-    public String updAccessListWithJson(@ResponseBody ArrayUsers arrayUsers) {
-        return "";
+    public boolean checkAdmin(String username) {
+        return userRepository.findByUsername(username).getRoles().contains(ADMIN);
     }
 
-    @PostMapping(value = "/file/delete/{filename}")
-    public String updAccessListWithJson(@ResponseBody ArrayUsers arrayUsers) {
-        return "";
-    }*/
+    public String printError(String status, String description, Response response) {
+
+        Gson gson = new Gson();
+        response.setStatus(status);
+        response.setDescription(description);
+        String responseString = gson.toJson(response);
+
+        return responseString;
+
+    }
 
 }
