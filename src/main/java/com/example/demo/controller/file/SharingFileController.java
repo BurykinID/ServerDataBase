@@ -123,7 +123,9 @@ public class SharingFileController {
                                         }
                                         accessRepository.save(access);
                                         // в любом случае помещаем пользователя в список тех, кому успешно разрешён доступ
-                                        responseWithoutError.add(usernameForShare.get(i));
+                                        if (!responseWithoutError.contains(usernameForShare.get(i)))
+                                            responseWithoutError.add(usernameForShare.get(i));
+
                                     }
                                     else {
                                         responseWithoutError.add(usernameForShare.get(i));
@@ -142,26 +144,26 @@ public class SharingFileController {
 
                         }
                         else {
-                            return printError("error", "Userlist пуст", response);
+                            return response.printError("error", "Userlist пуст", response);
                         }
                     }
                     else {
-                        return printError("error", "Не достаточно прав", response);
+                        return response.printError("error", "Не достаточно прав", response);
                     }
                 }
                 else {
-                    return printError("error", "Файл не существует", response);
+                    return response.printError("error", "Файл не существует", response);
                 }
             }
             else if (file != null) {
-                return printError("error", "Пользователь не существуют", response);
+                return response.printError("error", "Пользователь не существуют", response);
             }
             else {
-                return printError("error", "Пользователь и файл не существуют", response);
+                return response.printError("error", "Пользователь и файл не существуют", response);
             }
         }
         else {
-            return printError("error", "Я не получил никакой информации", response);
+            return response.printError("error", "Я не получил никакой информации", response);
         }
     }
 
@@ -169,15 +171,6 @@ public class SharingFileController {
         return userRepository.findByUsername(username).getRoles().contains(ADMIN);
     }
 
-    public String printError(String status, String description, Response response) {
 
-        Gson gson = new Gson();
-        response.setStatus(status);
-        response.setDescription(description);
-        String responseString = gson.toJson(response);
-
-        return responseString;
-
-    }
 
 }

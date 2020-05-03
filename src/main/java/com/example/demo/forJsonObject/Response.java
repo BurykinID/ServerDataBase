@@ -1,5 +1,7 @@
 package com.example.demo.forJsonObject;
 
+import com.google.gson.Gson;
+
 public class Response {
 
     private String status;
@@ -28,4 +30,16 @@ public class Response {
     public void setDescription (String description) {
         this.description = description;
     }
+
+    public String printError(String status, String description, Response response) {
+
+        Gson gson = new Gson();
+        response.setStatus(status);
+        response.setDescription(description);
+        String responseString = gson.toJson(response);
+
+        return responseString;
+
+    }
+
 }
