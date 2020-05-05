@@ -13,7 +13,6 @@ import java.util.ArrayList;
 @Setter
 public class UserAccess {
 
-    private String token;
     private ArrayList<Username> usernameForShare;
 
 }

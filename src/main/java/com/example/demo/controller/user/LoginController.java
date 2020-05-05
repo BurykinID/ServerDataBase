@@ -37,7 +37,7 @@ public class LoginController {
         this.userRepository = userRepository;
     }
 
-    @RequestMapping(value = "/auth", method = RequestMethod.POST)
+    @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
     public ResponseEntity createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
 
         User user = userRepository.findByUsername(authenticationRequest.getUsername());

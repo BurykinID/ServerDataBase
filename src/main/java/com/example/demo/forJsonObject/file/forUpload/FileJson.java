@@ -11,7 +11,6 @@ import lombok.Setter;
 @Setter
 public class FileJson {
 
-    private String token;
     private String filename;
     private String content;
     private String tag;

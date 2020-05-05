@@ -1,5 +1,6 @@
 package com.example.demo.controller.file;
 
+import com.example.demo.config.component.JwtToken;
 import com.example.demo.entity.Access;
 import com.example.demo.entity.File;
 import com.example.demo.entity.User;
@@ -10,12 +11,14 @@ import com.example.demo.repository.FileRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.role.Role;
 import com.google.gson.Gson;
+import io.jsonwebtoken.Jwt;
 import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.io.IOException;
 import java.util.Base64;
@@ -28,20 +31,23 @@ public class GetFileController {
     private final FileRepository fileRepository;
     private final AccessRepository accessRepository;
     private final UserRepository userRepository;
+    private final JwtToken jwtToken;
 
-    public GetFileController (FileRepository fileRepository, AccessRepository accessRepository, UserRepository userRepository) {
+    public GetFileController (FileRepository fileRepository, AccessRepository accessRepository, UserRepository userRepository, JwtToken jwtToken) {
         this.fileRepository = fileRepository;
         this.accessRepository = accessRepository;
         this.userRepository = userRepository;
+        this.jwtToken = jwtToken;
     }
 
     // success, но надо обсудить
     @GetMapping (value = {"/getfile/{filename}"})
-    public ResponseEntity getFile(@RequestBody Username username,
-                          @PathVariable (name = "filename") String filename) {
+    public ResponseEntity getFile(@RequestHeader ("Authorization") String token,
+                                  @PathVariable (name = "filename") String filename) {
 
         File file = fileRepository.findByFilename(filename);
-        User user = userRepository.findByUsername(username.getUsername());
+        String username = jwtToken.getUsernameFromToken(token.substring(7));
+        User user = userRepository.findByUsername(username);
         Gson gson = new Gson();
 
         if (file != null) {
@@ -60,7 +66,7 @@ public class GetFileController {
                     }
                 }
                 else {
-                    Access access = accessRepository.findByUsernameAndFilename(username.getUsername(), filename);
+                    Access access = accessRepository.findByUsernameAndFilename(username, filename);
                     if (access != null) {
                         if (Integer.parseInt(access.getAccess()) >= 1) {
                             try {

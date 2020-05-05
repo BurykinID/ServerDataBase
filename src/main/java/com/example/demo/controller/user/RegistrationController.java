@@ -5,14 +5,16 @@ import com.example.demo.forJsonObject.Response;
 import com.example.demo.forJsonObject.user.UserJSON;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
+import com.google.gson.Gson;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.NoSuchAlgorithmException;
+
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 public class RegistrationController {
@@ -43,6 +45,22 @@ public class RegistrationController {
             return new ResponseEntity<>("User already exists", HttpStatus.FORBIDDEN);
         }
         return new ResponseEntity<>("User is create", HttpStatus.OK);
+    }
+
+    //success
+    @GetMapping (value = "/activate/{code}")
+    public ResponseEntity activate(@PathVariable (name = "code") String code) {
+
+        boolean isActivated = userService.activateUser(code);
+
+        if(isActivated) {
+            return new ResponseEntity<>("User has activate", OK);
+        }
+
+        else {
+            return new ResponseEntity<>("Activate code does not found", NOT_FOUND);
+        }
+
     }
 
 }

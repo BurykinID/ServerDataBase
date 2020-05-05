@@ -38,11 +38,12 @@ public class FilterFileController {
     }
 
     @PostMapping (value = "listFile/filter")
-    public ResponseEntity getFileWithTag(@RequestBody Filter filter) {
+    public ResponseEntity getFileWithTag(@RequestHeader("Authorization") String token,
+                                         @RequestBody Filter filter) {
         String responseString = null;
         Gson gson = new Gson();
 
-        String username = jwtToken.getUsernameFromToken(filter.getToken());
+        String username = jwtToken.getUsernameFromToken(token.substring(7));
 
         User user = userRepository.findByUsername(username);
 

@@ -16,6 +16,7 @@ import com.google.gson.Gson;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -41,13 +42,12 @@ public class ListFileController {
     }
 
     @GetMapping (value = "/listFile")
-    public ResponseEntity getListFile(@RequestBody Token token) {
+    public ResponseEntity getListFile(@RequestHeader ("Authorization") String token) {
 
-        String username = jwtToken.getUsernameFromToken(token.getToken());
+        String username = jwtToken.getUsernameFromToken(token.substring(7));
 
         User user = userRepository.findByUsername(username);
         Gson gson = new Gson();
-        Response response = new Response();
 
         if (user != null) {
 

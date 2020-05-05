@@ -1,24 +1,20 @@
 package com.example.demo.controller.file;
 
+import com.example.demo.config.component.JwtRequest;
+import com.example.demo.config.component.JwtResponse;
 import com.example.demo.config.component.JwtToken;
 import com.example.demo.entity.Access;
 import com.example.demo.entity.File;
-import com.example.demo.forJsonObject.Response;
-import com.example.demo.forJsonObject.file.forUpload.Content;
 import com.example.demo.forJsonObject.file.forUpload.FileJson;
-import com.example.demo.forJsonObject.file.forUpload.Filename;
-import com.example.demo.forJsonObject.file.forUpload.Tag;
-import com.example.demo.forJsonObject.user.Username;
-import com.example.demo.form.FileForm;
 import com.example.demo.repository.AccessRepository;
 import com.example.demo.repository.FileRepository;
-import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -52,14 +48,15 @@ public class UploadFileController {
 
     @PostMapping("/addFile")
     @ResponseBody
-    public ResponseEntity saveFile(@RequestBody FileJson fileJson) {
+    public ResponseEntity saveFile(@RequestHeader("Authorization") String token,
+                                   @RequestBody FileJson fileJson) {
         File newFile = null;
         boolean fileExistence = false;
 
         if (fileJson != null) {
             java.io.File uploadDir = new java.io.File(uploadPath);
-
-            String username = jwtToken.getUsernameFromToken(fileJson.getToken());
+            String tokenRes = token.substring(7);
+            String username = jwtToken.getUsernameFromToken(tokenRes);
 
             if (!uploadDir.exists()) {
                 uploadDir.mkdir();

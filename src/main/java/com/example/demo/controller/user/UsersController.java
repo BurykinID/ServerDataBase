@@ -26,9 +26,7 @@ public class UsersController {
 
     // success
     @GetMapping
-    public ResponseEntity getUserList(@RequestBody String token) {
-
-        jwtToken.getUsernameFromToken(token);
+    public ResponseEntity getUserList() {
 
         Gson gson = new Gson();
         ArrayList<User> users = userRepository.findAll();

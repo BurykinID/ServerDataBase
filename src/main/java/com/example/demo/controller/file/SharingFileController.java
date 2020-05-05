@@ -43,35 +43,39 @@ public class SharingFileController {
     }
 
     @PostMapping(value = "/file/read/{filename}")
-    public ResponseEntity updReadListWithJson( @RequestBody UserAccess userAccess,
-                                       @PathVariable("filename") String filename) {
+    public ResponseEntity updReadListWithJson(@RequestHeader("Authorization") String token,
+                                              @RequestBody UserAccess userAccess,
+                                              @PathVariable("filename") String filename) {
 
-        return updPermit(userAccess, filename, "1");
+        return updPermit(userAccess, filename, "1", token);
 
     }
 
     @PostMapping(value = "/file/write/{filename}")
-    public ResponseEntity updWriteListWithJson(@RequestBody UserAccess userAccess,
-                                       @PathVariable("filename") String filename) {
+    public ResponseEntity updWriteListWithJson(@RequestHeader("Authorization") String token,
+                                               @RequestBody UserAccess userAccess,
+                                               @PathVariable("filename") String filename) {
 
-        return updPermit(userAccess, filename, "2");
+        return updPermit(userAccess, filename, "2", token);
 
     }
 
     @PostMapping(value = "/file/delete/{filename}")
-    public ResponseEntity updDeleteListWithJson(@RequestBody UserAccess userAccess,
-                                        @PathVariable("filename") String filename) {
-        return updPermit(userAccess, filename, "3");
+    public ResponseEntity updDeleteListWithJson(@RequestHeader("Authorization") String token,
+                                                @RequestBody UserAccess userAccess,
+                                                @PathVariable("filename") String filename) {
+        return updPermit(userAccess, filename, "3", token);
     }
 
-    public ResponseEntity updPermit(UserAccess userAccess, String filename, String lvlAccessInput) {
+    public ResponseEntity updPermit(UserAccess userAccess, String filename, String lvlAccessInput, String token) {
         Gson gson = new Gson();
         ArrayList<Username> responseWithoutError = new ArrayList<>();
         ArrayList<Username> responseWithError = new ArrayList<>();
         AccessAnwerUser accessAnwerUser = new AccessAnwerUser();
 
         if (userAccess != null) {
-            String username = jwtToken.getUsernameFromToken(userAccess.getToken());
+            String tokenStr = token.substring(7);
+            String username = jwtToken.getUsernameFromToken(tokenStr);
 
             boolean isAdmin = false;
 
