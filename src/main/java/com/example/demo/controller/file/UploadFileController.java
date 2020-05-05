@@ -1,5 +1,6 @@
 package com.example.demo.controller.file;
 
+import com.example.demo.config.component.JwtToken;
 import com.example.demo.entity.Access;
 import com.example.demo.entity.File;
 import com.example.demo.forJsonObject.Response;
@@ -13,6 +14,8 @@ import com.example.demo.repository.AccessRepository;
 import com.example.demo.repository.FileRepository;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +27,9 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.OK;
+
 //@RestController
 @Controller
 public class UploadFileController {
@@ -31,34 +37,29 @@ public class UploadFileController {
 
     private final FileRepository fileRepository;
     private final AccessRepository accessRepository;
+    private final JwtToken jwtToken;
 
     String upl = null;
 
-    public UploadFileController (FileRepository fileRepository, AccessRepository accessRepository) {
+    public UploadFileController (FileRepository fileRepository, AccessRepository accessRepository, JwtToken jwtToken) {
         this.fileRepository = fileRepository;
         this.accessRepository = accessRepository;
+        this.jwtToken = jwtToken;
     }
 
     @Value("${upload.path}")
     private String uploadPath;
 
-    /*@GetMapping("/addFile")
-    public String showAddPersonPage(Model model) {
-
-        FileForm fileForm = new FileForm();
-        model.addAttribute("fileForm", fileForm);
-
-        return "files/addFile";
-    }*/
-
     @PostMapping("/addFile")
     @ResponseBody
-    public String saveFile(@RequestBody FileJson fileJson) {
+    public ResponseEntity saveFile(@RequestBody FileJson fileJson) {
         File newFile = null;
         boolean fileExistence = false;
 
         if (fileJson != null) {
             java.io.File uploadDir = new java.io.File(uploadPath);
+
+            String username = jwtToken.getUsernameFromToken(fileJson.getToken());
 
             if (!uploadDir.exists()) {
                 uploadDir.mkdir();
@@ -142,7 +143,7 @@ public class UploadFileController {
             String uploadDate = String.valueOf(time);
 
             ArrayList<String> accessList = new ArrayList<>();
-            accessList.add(fileJson.getUsername());//user.getUsername());
+            accessList.add(username);
 
             ArrayList<String> tags = new ArrayList<>();
 
@@ -157,32 +158,14 @@ public class UploadFileController {
                 tags.add(fileJson.getTag().trim());
             }
 
-            //tags.add("#тест");
+            newFile = new File(uploadFileName,  uploadSize, uploadDate, username, username, uploadPathFile, tags);
 
-            //<-- на релизе надо выпилить
-            //byte[]fileContent = FileUtils.readFileToByteArray(new java.io.File());
-            /*String encodedString = Base64.getEncoder().encodeToString(file.getBytes());
-            System.out.println(encodedString);
-            if (upl != null){
-                if (upl.equals(encodedString))
-                    System.out.println(true);
-                else
-                    System.out.println(false);
-            }
-            upl = encodedString;*/
-            // на релизе надо выпилить -->
-            //newFile = new File(uploadFileName,  uploadSize, uploadDate, user.getUsername(), user.getUsername(), uploadPathFile, tags, accessList);
-            newFile = new File(uploadFileName,  uploadSize, uploadDate, fileJson.getUsername(), fileJson.getUsername(), uploadPathFile, tags);
-            //<-- на релизе выпилить
-            //file.transferTo(new java.io.File(uploadPathFile));
-            // -->
             try{
-                //byte[] decodedBytes = Base64.getDecoder().decode(upl);
-                byte[] decodedBytes = Base64.getDecoder().decode(fileJson.getContent());//fileJson.getContent());//);.getContent());
+                byte[] decodedBytes = Base64.getDecoder().decode(fileJson.getContent());
                 Files.write(Paths.get(uploadPath + uploadFileName), decodedBytes);
             }
             catch (IOException e) {
-                System.out.println("error");
+                return new ResponseEntity<>("Access denied", FORBIDDEN);
             }
 
         }
@@ -202,194 +185,14 @@ public class UploadFileController {
 
         }
 
-        Gson gson = new Gson();
-        Response response = new Response();
         if (notNull) {
-            response.setStatus("ok");
-            //response.setDescription("File " + file.getOriginalFilename() + " had uploaded");
-            response.setDescription("File " + fileJson.getFilename() + " had uploaded");
+            return new ResponseEntity<>("File was saved", OK);
         }
         else {
-            response.setStatus("error");
-            response.setDescription("File hadn't selected");
+            return new ResponseEntity<>("Access denied", FORBIDDEN);
         }
 
-        String responseString = gson.toJson(response);
-
-        return responseString;
     }
-
-    /*@PostMapping(value = {"/addFile"})
-    @ResponseBody
-    public String saveFile( @RequestBody Username username,
-                            //@AuthenticationPrincipal User user,
-                            //@RequestBody FileJson fileJson,
-                            @RequestBody Filename filename,
-                            @RequestBody Content content,
-                            //@RequestParam("filename") MultipartFile file,
-                            //@RequestParam String tag
-                            @RequestBody Tag tag) throws IOException {
-
-        File newFile = null;
-        boolean fileExistence = false;
-
-        if (filename != null && content != null){//fileJson != null) {
-            java.io.File uploadDir = new java.io.File(uploadPath);
-
-            if (!uploadDir.exists()) {
-                uploadDir.mkdir();
-            }
-
-            StringBuilder uploadFileNameSb = new StringBuilder();
-
-            String uploadFileName = filename.getFilename();//fileJson.getFilename();//.getFilename(); //file.getOriginalFilename();
-
-            java.io.File[] files = uploadDir.listFiles();
-            ArrayList<String> listFileName = new ArrayList<>();
-            for (java.io.File fileForBruteForce : files ) {
-                listFileName.add(fileForBruteForce.getName());
-            }
-
-            short countFiles = 0;
-
-            for (String fileNameForBruteForce : listFileName) {
-                if (fileNameForBruteForce.equals(uploadFileName)) {
-                    fileExistence = true;
-                }
-                else {
-                    String[] fileInfo = fileNameForBruteForce.split("\\.");
-
-                    if (fileInfo.length > 0) {
-                        String filenameForStr = fileInfo[0];
-                        String typeFile = fileInfo[fileInfo.length -1];
-                        int begin = filenameForStr.indexOf("(");
-                        if (begin != -1) {
-                            int end = filenameForStr.indexOf(")");
-                            StringBuilder filenameForEquals = new StringBuilder();
-                            filenameForEquals.append(filenameForStr.substring(0, begin));
-                            filenameForEquals.append(".");
-                            filenameForEquals.append(typeFile);
-                            if (filenameForEquals.toString().equals(uploadFileName)) {
-                                short nowCountFiles = Short.parseShort(filenameForStr.substring(begin+1, end));
-                                if (nowCountFiles > countFiles)
-                                    countFiles = nowCountFiles;
-                            }
-                        }
-                    }
-
-                }
-
-            }
-
-            if (fileExistence) {
-
-                countFiles += 1;
-
-                String[] lotOfString = uploadFileName.split("\\.");
-                String filenameWithoutType = null;
-                String typeFile = null;
-
-                if (lotOfString.length > 0) {
-                    int lengthLotOfString = lotOfString.length;
-                    filenameWithoutType = lotOfString[0];
-                    typeFile = lotOfString[lengthLotOfString-1];
-                }
-
-                uploadFileNameSb.append(filenameWithoutType);
-                uploadFileNameSb.append("(");
-                uploadFileNameSb.append(countFiles);
-                uploadFileNameSb.append(").");
-                uploadFileNameSb.append(typeFile);
-
-                uploadFileName = uploadFileNameSb.toString();
-
-            }
-
-            //String uploadSize = Calc.getFileSize(fileJson.getContents());//file.getSize());
-            String uploadSize = "555КБ";
-
-            StringBuilder uploadPathFileSb = new StringBuilder();
-            uploadPathFileSb.append(uploadPath);
-            uploadPathFileSb.append(uploadFileName);
-
-            String uploadPathFile = uploadPathFileSb.toString();
-
-            long time = new Date().getTime();
-            String uploadDate = String.valueOf(time);
-
-            ArrayList<String> accessList = new ArrayList<>();
-            accessList.add(username.getUsername());//user.getUsername());
-
-            ArrayList<String> tags = new ArrayList<>();
-
-            try {
-                tag.setTag(tag.getTag().replaceAll(" ", ""));
-                String[] userTags = tag.getTag().split(",");
-                for (String tagAboutUser : userTags) {
-                    tags.add(tagAboutUser);
-                }
-            }
-            catch (ArrayIndexOutOfBoundsException e) {
-                tags.add(tag.getTag().trim());
-            }
-
-            //tags.add("#тест");
-
-            //<-- на релизе надо выпилить
-            //byte[]fileContent = FileUtils.readFileToByteArray(new java.io.File());
-            *//*String encodedString = Base64.getEncoder().encodeToString(file.getBytes());
-            System.out.println(encodedString);
-            if (upl != null){
-                if (upl.equals(encodedString))
-                    System.out.println(true);
-                else
-                    System.out.println(false);
-            }
-            upl = encodedString;*//*
-            // на релизе надо выпилить -->
-            //newFile = new File(uploadFileName,  uploadSize, uploadDate, user.getUsername(), user.getUsername(), uploadPathFile, tags, accessList);
-            newFile = new File(uploadFileName,  uploadSize, uploadDate, username.getUsername(), username.getUsername(), uploadPathFile, tags, accessList);
-            //<-- на релизе выпилить
-            //file.transferTo(new java.io.File(uploadPathFile));
-            // -->
-            try{
-                //byte[] decodedBytes = Base64.getDecoder().decode(upl);
-                byte[] decodedBytes = Base64.getDecoder().decode(content.getContent());//fileJson.getContent());//);.getContent());
-                Files.write(Paths.get(uploadPath + uploadFileName), decodedBytes);
-            }
-            catch (IOException e) {
-                System.out.println("error");
-            }
-
-        }
-
-        boolean notNull = false;
-
-        if (newFile != null) {
-            fileRepository.save(newFile);
-            notNull = true;
-        }
-
-        Gson gson = new Gson();
-        Response response = new Response();
-        if (notNull) {
-            response.setStatus("ok");
-            //response.setDescription("File " + file.getOriginalFilename() + " had uploaded");
-            response.setDescription("File " + filename.getFilename()*//*fileJson.getFilename()*//* + " had uploaded");
-        }
-        else {
-            response.setStatus("error");
-            response.setDescription("File hadn't selected");
-        }
-
-        String responseString = gson.toJson(response);
-
-        return responseString;
-    }*/
-
-
-
-
 
 }
 

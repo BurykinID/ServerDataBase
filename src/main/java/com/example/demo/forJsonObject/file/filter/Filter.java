@@ -11,7 +11,7 @@ import java.util.ArrayList;
 @Data
 public class Filter {
 
-    private String username;
+    private String token;
     private ArrayList<Tag> tag;
 
 }

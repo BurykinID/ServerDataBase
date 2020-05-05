@@ -8,14 +8,20 @@ import com.example.demo.forJsonObject.user.Username;
 import com.example.demo.repository.AccessRepository;
 import com.example.demo.repository.FileRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.role.Role;
 import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.io.IOException;
 import java.util.Base64;
+
+import static com.example.demo.role.Role.ADMIN;
+import static org.springframework.http.HttpStatus.*;
 
 public class GetFileController {
 
@@ -31,77 +37,59 @@ public class GetFileController {
 
     // success, но надо обсудить
     @GetMapping (value = {"/getfile/{filename}"})
-    public String getFile(@RequestBody Username username,
+    public ResponseEntity getFile(@RequestBody Username username,
                           @PathVariable (name = "filename") String filename) {
 
         File file = fileRepository.findByFilename(filename);
         User user = userRepository.findByUsername(username.getUsername());
-        // допилить ещё проверку на то, что у него есть доступ к данному файлу
         Gson gson = new Gson();
-        Response response = new Response();
 
         if (file != null) {
             if (user != null) {
-                Access access = accessRepository.findByUsernameAndFilename(username.getUsername(), filename);
-                if (access != null) {
-                    if (Integer.parseInt(access.getAccess()) >= 1) {
-                        try {
-                            byte[]fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
-                            String encodedString = Base64.getEncoder().encodeToString(fileContent);
-                            String responseString = gson.toJson(encodedString);
-                            return responseString;
-                        } catch (IOException e) {
-                            response.setStatus("error");
-                            response.setDescription("error with encode Base 64");
-                        }
-                    }
-                    else {
-                        response.setStatus("error");
-                        response.setDescription("У пользователя нет доступа к данному файлу");
+
+                boolean isAdmin = user.getRoles().contains(ADMIN);
+
+                if (isAdmin) {
+                    try {
+                        byte[]fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
+                        String encodedString = Base64.getEncoder().encodeToString(fileContent);
+                        String responseString = gson.toJson(encodedString);
+                        return new ResponseEntity<>(responseString, OK);
+                    } catch (IOException e) {
+                        return new ResponseEntity<>("Error Base64 encode", HttpStatus.UNPROCESSABLE_ENTITY);
                     }
                 }
                 else {
-                    response.setStatus("error");
-                    response.setDescription("У пользователя нет доступа к данному файлу");
+                    Access access = accessRepository.findByUsernameAndFilename(username.getUsername(), filename);
+                    if (access != null) {
+                        if (Integer.parseInt(access.getAccess()) >= 1) {
+                            try {
+                                byte[]fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
+                                String encodedString = Base64.getEncoder().encodeToString(fileContent);
+                                String responseString = gson.toJson(encodedString);
+                                return new ResponseEntity<>(responseString, OK);
+                            } catch (IOException e) {
+                                return new ResponseEntity<>("Error Base64 encode", HttpStatus.UNPROCESSABLE_ENTITY);
+                            }
+                        }
+                        else {
+                            return new ResponseEntity<>("Access denied", FORBIDDEN);
+                        }
+                    }
+                    else {
+                        return new ResponseEntity<>("Access denied", FORBIDDEN);
+                    }
                 }
+
             }
             else {
-                response.setStatus("error");
-                response.setDescription("Такого пользователя не существует");
+                return new ResponseEntity<>("User does not found", NOT_FOUND);
             }
         }
         else {
-            response.setStatus("error");
-            response.setDescription("Файла с таким именем не существует");
+            return new ResponseEntity<>("File does not found", NOT_FOUND);
         }
-
-        String responseString = gson.toJson(response);
-        return responseString;
 
     }
-
-    /*
-    only for test with docker
-
-    @GetMapping(value = {"/check"})
-    public String checkFile() {
-
-        try {
-            BufferedReader bufferedReader = new BufferedReader( new FileReader("/var/lib/postgresql/data/aaaa.txt"));
-            try {
-                String s = null;
-                while ((s = bufferedReader.readLine()) != null) {
-                    System.out.println(s);
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        return "check.html";
-    }*/
 
 }

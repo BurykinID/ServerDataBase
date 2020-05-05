@@ -1,5 +1,6 @@
 package com.example.demo.controller.file;
 
+import com.example.demo.config.component.JwtToken;
 import com.example.demo.entity.Access;
 import com.example.demo.entity.File;
 import com.example.demo.entity.User;
@@ -13,6 +14,8 @@ import com.example.demo.repository.FileRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.role.Role;
 import com.google.gson.Gson;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -25,22 +28,23 @@ public class FilterFileController {
     private final FileRepository fileRepository;
     private final UserRepository userRepository;
     private final AccessRepository accessRepository;
+    private final JwtToken jwtToken;
 
-    public FilterFileController (FileRepository fileRepository, UserRepository userRepository, AccessRepository accessRepository) {
+    public FilterFileController (FileRepository fileRepository, UserRepository userRepository, AccessRepository accessRepository, JwtToken jwtToken) {
         this.fileRepository = fileRepository;
         this.userRepository = userRepository;
         this.accessRepository = accessRepository;
+        this.jwtToken = jwtToken;
     }
 
     @PostMapping (value = "listFile/filter")
-    public String getFileWithTag(@RequestBody Filter filter//Username username,//@AuthenticationPrincipal User user,
-                                 //@PathVariable("tag") String tag
-                                 ) {
+    public ResponseEntity getFileWithTag(@RequestBody Filter filter) {
         String responseString = null;
         Gson gson = new Gson();
-        Response response = new Response();
 
-        User user = userRepository.findByUsername(filter.getUsername());
+        String username = jwtToken.getUsernameFromToken(filter.getToken());
+
+        User user = userRepository.findByUsername(username);
 
         if (user != null) {
             ArrayList<File> allFile = fileRepository.findAll();
@@ -51,9 +55,8 @@ public class FilterFileController {
                 allFileWithPermission.addAll(allFile);
             }
             else {
-                String usernameStr = filter.getUsername();
                 for (File file : allFile) {
-                    Access access = accessRepository.findByUsernameAndFilename(usernameStr, file.getFilename());
+                    Access access = accessRepository.findByUsernameAndFilename(username, file.getFilename());
                     if (access != null) {
                         allFileWithPermission.add(file);
                     }
@@ -71,28 +74,20 @@ public class FilterFileController {
                     }
 
                 }
-
                 if (fileJson != null && fileJson.size() > 0) {
                     responseString = gson.toJson(fileJson);
-                    return responseString;
+                    return new ResponseEntity<>(responseString, HttpStatus.OK);
                 }
                 else {
-                    response.setStatus("error");
-                    response.setDescription("Files with this tag does not found");
-                    responseString = gson.toJson(response);
-                    return responseString;
+                    return new ResponseEntity<>("File with this tag does not found", HttpStatus.NOT_FOUND);
                 }
             }
             else {
-                response.setStatus("error");
-                response.setDescription("You have not file with this tag and permission");
-                return responseString;
+                return new ResponseEntity<>("File with this tag and permission does not found", HttpStatus.NOT_FOUND);
             }
         }
         else {
-            response.setStatus("error");
-            response.setDescription("Пользователь с таким именем не найден");
-            return responseString;
+            return new ResponseEntity<>("User does not found", HttpStatus.NOT_FOUND);
         }
 
     }

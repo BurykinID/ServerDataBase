@@ -1,5 +1,6 @@
 package com.example.demo.controller.file;
 
+import com.example.demo.config.component.JwtToken;
 import com.example.demo.entity.Access;
 import com.example.demo.entity.File;
 import com.example.demo.entity.User;
@@ -14,6 +15,7 @@ import com.example.demo.repository.FileRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.role.Role;
 import com.google.gson.Gson;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +24,7 @@ import java.util.Arrays;
 import java.util.Set;
 
 import static com.example.demo.role.Role.ADMIN;
+import static org.springframework.http.HttpStatus.*;
 
 @RestController
 public class SharingFileController {
@@ -29,31 +32,18 @@ public class SharingFileController {
     private final FileRepository fileRepository;
     private final UserRepository userRepository;
     private final AccessRepository accessRepository;
+    private final JwtToken jwtToken;
     private ArrayList<String> errorUser;
 
-    public SharingFileController(FileRepository fileRepository,
-                                 UserRepository userRepository,
-                                 AccessRepository accessRepository) {
+    public SharingFileController (FileRepository fileRepository, UserRepository userRepository, AccessRepository accessRepository, JwtToken jwtToken) {
         this.fileRepository = fileRepository;
         this.userRepository = userRepository;
         this.accessRepository = accessRepository;
+        this.jwtToken = jwtToken;
     }
 
-    /*@GetMapping(value = "/file/{filename}")
-    public String getFile(@PathVariable("filename") String filename,
-                          Model model) {
-
-        File file = fileRepository.findByFilename(filename);
-        FileForm fileForm = new FileForm();
-
-        model.addAttribute("file", file);
-        model.addAttribute("fileForm", fileForm);
-
-        return "access/insertUserInAccessList";
-    }*/
-
     @PostMapping(value = "/file/read/{filename}")
-    public String updReadListWithJson( @RequestBody UserAccess userAccess,
+    public ResponseEntity updReadListWithJson( @RequestBody UserAccess userAccess,
                                        @PathVariable("filename") String filename) {
 
         return updPermit(userAccess, filename, "1");
@@ -61,7 +51,7 @@ public class SharingFileController {
     }
 
     @PostMapping(value = "/file/write/{filename}")
-    public String updWriteListWithJson(@RequestBody UserAccess userAccess,
+    public ResponseEntity updWriteListWithJson(@RequestBody UserAccess userAccess,
                                        @PathVariable("filename") String filename) {
 
         return updPermit(userAccess, filename, "2");
@@ -69,20 +59,19 @@ public class SharingFileController {
     }
 
     @PostMapping(value = "/file/delete/{filename}")
-    public String updDeleteListWithJson(@RequestBody UserAccess userAccess,
+    public ResponseEntity updDeleteListWithJson(@RequestBody UserAccess userAccess,
                                         @PathVariable("filename") String filename) {
         return updPermit(userAccess, filename, "3");
     }
 
-    public String updPermit(UserAccess userAccess, String filename, String lvlAccessInput) {
+    public ResponseEntity updPermit(UserAccess userAccess, String filename, String lvlAccessInput) {
         Gson gson = new Gson();
-        Response response = new Response();
         ArrayList<Username> responseWithoutError = new ArrayList<>();
         ArrayList<Username> responseWithError = new ArrayList<>();
         AccessAnwerUser accessAnwerUser = new AccessAnwerUser();
 
         if (userAccess != null) {
-            String username = userAccess.getUsername();
+            String username = jwtToken.getUsernameFromToken(userAccess.getToken());
 
             boolean isAdmin = false;
 
@@ -139,38 +128,37 @@ public class SharingFileController {
 
                             accessAnwerUser.setUserWithError(responseWithError);
                             accessAnwerUser.setUserWithoutError(responseWithoutError);
-                            String responseString = gson.toJson(accessAnwerUser);
-                            return responseString;
+
+                            return new ResponseEntity<>(gson.toJson(accessAnwerUser), OK);
 
                         }
                         else {
-                            return response.printError("error", "Userlist пуст", response);
+                            return new ResponseEntity<>("List of user is empty", OK);
                         }
                     }
                     else {
-                        return response.printError("error", "Не достаточно прав", response);
+                        return new ResponseEntity<>("Access denied", FORBIDDEN);
                     }
                 }
                 else {
-                    return response.printError("error", "Файл не существует", response);
+                    return new ResponseEntity<>("File does not found", NOT_FOUND);
                 }
             }
             else if (file != null) {
-                return response.printError("error", "Пользователь не существуют", response);
+                return new ResponseEntity<>("User does not found", NOT_FOUND);
             }
             else {
-                return response.printError("error", "Пользователь и файл не существуют", response);
+                return new ResponseEntity<>("User and wile do not found", NOT_FOUND);
             }
         }
         else {
-            return response.printError("error", "Я не получил никакой информации", response);
+            // уточнить
+            return new ResponseEntity<>("Запрос пуст", OK);
         }
     }
 
     public boolean checkAdmin(String username) {
         return userRepository.findByUsername(username).getRoles().contains(ADMIN);
     }
-
-
 
 }

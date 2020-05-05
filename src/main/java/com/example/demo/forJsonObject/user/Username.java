@@ -1,25 +1,20 @@
 package com.example.demo.forJsonObject.user;
 
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 // для Json конструкции вида [
 // { "username" : "value"},
 // { "username" : "value"} ...
 // ]
+@Data
+@NoArgsConstructor
+@Getter
+@Setter
 public class Username {
 
     private String username;
 
-    public Username () {
-    }
-
-    public Username (String username) {
-        this.username = username;
-    }
-
-    public String getUsername () {
-        return username;
-    }
-
-    public void setUsername (String username) {
-        this.username = username;
-    }
 }

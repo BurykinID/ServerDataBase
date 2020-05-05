@@ -1,19 +1,16 @@
-package com.example.demo.forJsonObject.user;
+package com.example.demo.forJsonObject;
 
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-
 @Data
 @NoArgsConstructor
 @Getter
 @Setter
-public class UserAccess {
+public class Token {
 
     private String token;
-    private ArrayList<Username> usernameForShare;
 
 }
