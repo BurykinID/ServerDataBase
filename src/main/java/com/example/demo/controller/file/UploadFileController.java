@@ -1,7 +1,6 @@
 package com.example.demo.controller.file;
 
-import com.example.demo.config.component.JwtRequest;
-import com.example.demo.config.component.JwtResponse;
+import com.example.demo.Validator.Calc;
 import com.example.demo.config.component.JwtToken;
 import com.example.demo.entity.Access;
 import com.example.demo.entity.File;
@@ -10,14 +9,14 @@ import com.example.demo.repository.AccessRepository;
 import com.example.demo.repository.FileRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -26,8 +25,9 @@ import java.util.Date;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.OK;
 
-//@RestController
-@Controller
+// переработать и добавить версионирование
+
+@RestController
 public class UploadFileController {
 
 
@@ -47,7 +47,6 @@ public class UploadFileController {
     private String uploadPath;
 
     @PostMapping("/addFile")
-    @ResponseBody
     public ResponseEntity saveFile(@RequestHeader("Authorization") String token,
                                    @RequestBody FileJson fileJson) {
         File newFile = null;
@@ -64,7 +63,7 @@ public class UploadFileController {
 
             StringBuilder uploadFileNameSb = new StringBuilder();
 
-            String uploadFileName = fileJson.getFilename();//file.getOriginalFilename();
+            String uploadFileName = fileJson.getFilename();
 
             java.io.File[] files = uploadDir.listFiles();
             ArrayList<String> listFileName = new ArrayList<>();
@@ -127,9 +126,6 @@ public class UploadFileController {
 
             }
 
-            //String uploadSize = Calc.getFileSize(fileJson.getContents());//file.getSize());
-            String uploadSize = "555КБ";
-
             StringBuilder uploadPathFileSb = new StringBuilder();
             uploadPathFileSb.append(uploadPath);
             uploadPathFileSb.append(uploadFileName);
@@ -155,15 +151,20 @@ public class UploadFileController {
                 tags.add(fileJson.getTag().trim());
             }
 
-            newFile = new File(uploadFileName,  uploadSize, uploadDate, username, username, uploadPathFile, tags);
+            java.io.File fileWithSize = null;
 
             try{
                 byte[] decodedBytes = Base64.getDecoder().decode(fileJson.getContent());
-                Files.write(Paths.get(uploadPath + uploadFileName), decodedBytes);
+                Path path = Files.write(Paths.get(uploadPath + uploadFileName), decodedBytes);
+                fileWithSize = new java.io.File(String.valueOf(path));
             }
             catch (IOException e) {
                 return new ResponseEntity<>("Access denied", FORBIDDEN);
             }
+
+            String uploadFileSize = Calc.getFileSize(fileWithSize.length());
+
+            newFile = new File(uploadFileName, uploadFileSize , uploadDate, username, username, uploadPathFile, tags);
 
         }
 

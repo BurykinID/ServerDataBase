@@ -33,7 +33,6 @@ public class SharingFileController {
     private final UserRepository userRepository;
     private final AccessRepository accessRepository;
     private final JwtToken jwtToken;
-    private ArrayList<String> errorUser;
 
     public SharingFileController (FileRepository fileRepository, UserRepository userRepository, AccessRepository accessRepository, JwtToken jwtToken) {
         this.fileRepository = fileRepository;
@@ -46,18 +45,14 @@ public class SharingFileController {
     public ResponseEntity updReadListWithJson(@RequestHeader("Authorization") String token,
                                               @RequestBody UserAccess userAccess,
                                               @PathVariable("filename") String filename) {
-
-        return updPermit(userAccess, filename, "1", token);
-
+        return updReadPermit(userAccess, filename, "1", token);
     }
 
     @PostMapping(value = "/file/write/{filename}")
     public ResponseEntity updWriteListWithJson(@RequestHeader("Authorization") String token,
                                                @RequestBody UserAccess userAccess,
                                                @PathVariable("filename") String filename) {
-
         return updPermit(userAccess, filename, "2", token);
-
     }
 
     @PostMapping(value = "/file/delete/{filename}")
@@ -65,6 +60,27 @@ public class SharingFileController {
                                                 @RequestBody UserAccess userAccess,
                                                 @PathVariable("filename") String filename) {
         return updPermit(userAccess, filename, "3", token);
+    }
+
+    @PostMapping(value = "/file/drop/read/{filename}")
+    public ResponseEntity dropReadListWithJson(@RequestHeader("Authorization") String token,
+                                              @RequestBody UserAccess userAccess,
+                                              @PathVariable("filename") String filename) {
+        return deletePermit(userAccess, filename, "0", token);
+    }
+
+    @PostMapping(value = "/file/drop/write/{filename}")
+    public ResponseEntity dropWritedListWithJson(@RequestHeader("Authorization") String token,
+                                               @RequestBody UserAccess userAccess,
+                                               @PathVariable("filename") String filename) {
+        return deletePermit(userAccess, filename, "1", token);
+    }
+
+    @PostMapping(value = "/file/drop/delete/{filename}")
+    public ResponseEntity dropDeleteListWithJson(@RequestHeader("Authorization") String token,
+                                               @RequestBody UserAccess userAccess,
+                                               @PathVariable("filename") String filename) {
+        return deletePermit(userAccess, filename, "2", token);
     }
 
     public ResponseEntity updPermit(UserAccess userAccess, String filename, String lvlAccessInput, String token) {
@@ -121,12 +137,14 @@ public class SharingFileController {
 
                                     }
                                     else {
-                                        responseWithoutError.add(usernameForShare.get(i));
+                                        if (responseWithoutError.contains(usernameForShare.get(i)))
+                                            responseWithoutError.add(usernameForShare.get(i));
                                     }
 
                                 }
                                 else {
-                                    responseWithError.add(usernameForShare.get(i));
+                                    if (!responseWithError.contains(usernameForShare.get(i)))
+                                        responseWithError.add(usernameForShare.get(i));
                                 }
                             }
 
@@ -156,9 +174,206 @@ public class SharingFileController {
             }
         }
         else {
-            // уточнить
             return new ResponseEntity<>("Запрос пуст", OK);
         }
+    }
+
+    public ResponseEntity updReadPermit(UserAccess userAccess, String filename, String lvlAccessInput, String token) {
+        Gson gson = new Gson();
+        ArrayList<Username> responseWithoutError = new ArrayList<>();
+        ArrayList<Username> responseWithError = new ArrayList<>();
+        AccessAnwerUser accessAnwerUser = new AccessAnwerUser();
+
+        if (userAccess != null) {
+            String tokenStr = token.substring(7);
+            String username = jwtToken.getUsernameFromToken(tokenStr);
+
+            boolean isAdmin = false;
+
+            User user = userRepository.findByUsername(username);
+            File file = fileRepository.findByFilename(filename);
+
+            if (user != null) {
+                if (file != null) {
+                    boolean isAuthor = file.getAuthor().equals(username);
+
+                    if (!isAuthor) {
+                        isAdmin = checkAdmin(username);
+                    }
+
+                    Access accessUser = accessRepository.findByUsernameAndFilename(username, filename);
+
+                    int lvlUser = Integer.parseInt(accessUser.getAccess());
+
+                    if (isAuthor || isAdmin || lvlUser >= 1) {
+                        // получение списка пользователей, для которых необходимо расширить доступ на чтение файла.
+                        ArrayList<Username> usernameForShare = userAccess.getUsernameForShare();
+
+                        if (usernameForShare != null) {
+                            for (int i = 0; i < usernameForShare.size(); i++) {
+
+                                User newUser = userRepository.findByUsername(usernameForShare.get(i).getUsername());
+                                // проверка на то, что пользователь из списка вообще существует
+                                if (newUser != null) {
+
+                                    if (!checkAdmin(newUser.getUsername())) {
+
+                                        Access access = accessRepository.findByUsernameAndFilename(newUser.getUsername(), filename);
+
+                                        if (access != null) {
+                                            int lvlAccess = Integer.parseInt(access.getAccess());
+                                            int lvlAccessInt = Integer.parseInt(lvlAccessInput);
+                                            if (lvlAccess < lvlAccessInt)
+                                                access.setAccess(lvlAccessInput);
+                                        }
+                                        else {
+                                            access = new Access(file.getFilename(), newUser.getUsername(), lvlAccessInput);
+                                        }
+                                        accessRepository.save(access);
+                                        // в любом случае помещаем пользователя в список тех, кому успешно разрешён доступ
+                                        if (!responseWithoutError.contains(usernameForShare.get(i)))
+                                            responseWithoutError.add(usernameForShare.get(i));
+
+                                    }
+                                    else {
+                                        if (responseWithoutError.contains(usernameForShare.get(i)))
+                                            responseWithoutError.add(usernameForShare.get(i));
+                                    }
+
+                                }
+                                else {
+                                    if (!responseWithError.contains(usernameForShare.get(i)))
+                                        responseWithError.add(usernameForShare.get(i));
+                                }
+                            }
+
+                            accessAnwerUser.setUserWithError(responseWithError);
+                            accessAnwerUser.setUserWithoutError(responseWithoutError);
+
+                            return new ResponseEntity<>(gson.toJson(accessAnwerUser), OK);
+
+                        }
+                        else {
+                            return new ResponseEntity<>("List of user is empty", OK);
+                        }
+                    }
+                    else {
+                        return new ResponseEntity<>("Access denied", FORBIDDEN);
+                    }
+                }
+                else {
+                    return new ResponseEntity<>("File does not found", NOT_FOUND);
+                }
+            }
+            else if (file != null) {
+                return new ResponseEntity<>("User does not found", NOT_FOUND);
+            }
+            else {
+                return new ResponseEntity<>("User and wile do not found", NOT_FOUND);
+            }
+        }
+        else {
+            return new ResponseEntity<>("Запрос пуст", OK);
+        }
+    }
+
+    public ResponseEntity deletePermit(UserAccess userAccess, String filename, String lvlAccessInput, String token) {
+        Gson gson = new Gson();
+        ArrayList<Username> responseWithoutError = new ArrayList<>();
+        ArrayList<Username> responseWithError = new ArrayList<>();
+        AccessAnwerUser accessAnwerUser = new AccessAnwerUser();
+
+        if (userAccess != null) {
+            String tokenStr = token.substring(7);
+            String username = jwtToken.getUsernameFromToken(tokenStr);
+
+            boolean isAdmin = false;
+
+            User user = userRepository.findByUsername(username);
+            File file = fileRepository.findByFilename(filename);
+
+            if (user != null) {
+                if (file != null) {
+                    boolean isAuthor = file.getAuthor().equals(username);
+
+                    if (!isAuthor) {
+                        isAdmin = checkAdmin(username);
+                    }
+
+                    if (isAuthor || isAdmin) {
+                        // получение списка пользователей, для которых необходимо расширить доступ на чтение файла.
+                        ArrayList<Username> usernameForShare = userAccess.getUsernameForShare();
+
+                        if (usernameForShare != null) {
+                            for (int i = 0; i < usernameForShare.size(); i++) {
+
+                                User newUser = userRepository.findByUsername(usernameForShare.get(i).getUsername());
+                                // проверка на то, что пользователь из списка вообще существует
+                                if (newUser != null) {
+
+                                    if (!checkAdmin(newUser.getUsername())) {
+
+                                        Access access = accessRepository.findByUsernameAndFilename(newUser.getUsername(), filename);
+
+                                        if (access != null) {
+                                            int lvlAccess = Integer.parseInt(access.getAccess());
+                                            int lvlAccessInt = Integer.parseInt(lvlAccessInput);
+                                            if (lvlAccess > lvlAccessInt)
+                                                access.setAccess(lvlAccessInput);
+                                        }
+                                        else {
+                                            access = new Access(file.getFilename(), newUser.getUsername(), lvlAccessInput);
+                                        }
+                                        if (lvlAccessInput.equals("0"))
+                                            accessRepository.delete(access);
+                                        else
+                                            accessRepository.save(access);
+                                        // в любом случае помещаем пользователя в список тех, кому успешно разрешён доступ
+                                        if (!responseWithoutError.contains(usernameForShare.get(i)))
+                                            responseWithoutError.add(usernameForShare.get(i));
+
+                                    }
+                                    else {
+                                        if (responseWithoutError.contains(usernameForShare.get(i)))
+                                            responseWithoutError.add(usernameForShare.get(i));
+                                    }
+
+                                }
+                                else {
+                                    if (!responseWithError.contains(usernameForShare.get(i)))
+                                        responseWithError.add(usernameForShare.get(i));
+                                }
+                            }
+
+                            accessAnwerUser.setUserWithError(responseWithError);
+                            accessAnwerUser.setUserWithoutError(responseWithoutError);
+
+                            return new ResponseEntity<>(gson.toJson(accessAnwerUser), OK);
+
+                        }
+                        else {
+                            return new ResponseEntity<>("List of user is empty", OK);
+                        }
+                    }
+                    else {
+                        return new ResponseEntity<>("Access denied", FORBIDDEN);
+                    }
+                }
+                else {
+                    return new ResponseEntity<>("File does not found", NOT_FOUND);
+                }
+            }
+            else if (file != null) {
+                return new ResponseEntity<>("User does not found", NOT_FOUND);
+            }
+            else {
+                return new ResponseEntity<>("User and wile do not found", NOT_FOUND);
+            }
+        }
+        else {
+            return new ResponseEntity<>("Запрос пуст", OK);
+        }
+
     }
 
     public boolean checkAdmin(String username) {

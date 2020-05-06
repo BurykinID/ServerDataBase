@@ -15,10 +15,7 @@ import io.jsonwebtoken.Jwt;
 import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.Base64;
@@ -26,6 +23,7 @@ import java.util.Base64;
 import static com.example.demo.role.Role.ADMIN;
 import static org.springframework.http.HttpStatus.*;
 
+@RestController
 public class GetFileController {
 
     private final FileRepository fileRepository;
