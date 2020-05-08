@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public interface AccessRepository extends JpaRepository<Access, Long> {
 
     ArrayList<Access> findByUsername(String username);
-    ArrayList<Access> findByFilename(String filename);
-    Access findByUsernameAndFilename(String username, String filename);
+    ArrayList<Access> findByIdFile(String iDFile);
+    Access findByUsernameAndIdFile(String username, String idFile);
 
 }

@@ -23,12 +23,12 @@ public class Access {
             strategy = "org.hibernate.id.UUIDGenerator"
     )
     private UUID id;
-    private String filename;
+    private String idFile;
     private String username;
     private String access;
 
-    public Access(String filename, String username, String access) {
-        this.filename = filename;
+    public Access(String idFile, String username, String access) {
+        this.idFile = idFile;
         this.username = username;
         this.access = access;
     }

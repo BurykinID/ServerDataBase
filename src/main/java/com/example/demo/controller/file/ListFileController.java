@@ -55,7 +55,41 @@ public class ListFileController {
             ArrayList<File> accessFiles = new ArrayList<>();
 
             if (user.getRoles().contains(ADMIN)) {
-                accessFiles.addAll(files);
+
+                for (File file: files) {
+
+                    boolean isExists = false;
+                    boolean isReplase = false;
+                    int k = 0;
+
+                    for (File existFile : accessFiles) {
+
+                        if (existFile.getFilename().equals(file.getFilename()) &&
+                                existFile.getAuthor().equals(file.getAuthor()) &&
+                                (Long.parseLong(existFile.getDate()) < Long.parseLong(file.getDate()))) {
+                            isReplase = true;
+                            isExists = true;
+                            break;
+                        }
+                        else if (existFile.getFilename().equals(file.getFilename()) &&
+                                existFile.getAuthor().equals(file.getAuthor()) &&
+                                (Long.parseLong(existFile.getDate()) >= Long.parseLong(file.getDate()))) {
+                            isExists = true;
+                            break;
+                        }
+                        k++;
+
+                    }
+
+                    if (isReplase) {
+                        accessFiles.set(k, file);
+                    }
+
+                    if (!isExists)
+                        accessFiles.add(file);
+
+                }
+
                 ArrayList<FileJsonOutput> jsonFiles = new ArrayList<>();
 
                 for (File file : accessFiles) {
@@ -67,9 +101,38 @@ public class ListFileController {
             }
             else {
                 for (File file: files) {
-                    Access access = accessRepository.findByUsernameAndFilename(username, file.getFilename());
+                    Access access = accessRepository.findByUsernameAndIdFile(username, String.valueOf(file.getId()));
                     if (access != null && (Integer.parseInt(access.getAccess()) >= 1)) {
-                        accessFiles.add(file);
+
+                        boolean isExists = false;
+                        boolean isReplase = false;
+                        int k = 0;
+
+                        for (File existFile : accessFiles) {
+
+                            if (existFile.getFilename().equals(file.getFilename()) &&
+                                existFile.getAuthor().equals(file.getAuthor()) &&
+                                (Long.parseLong(existFile.getDate()) < Long.parseLong(file.getDate()))) {
+                                isReplase = true;
+                                isExists = true;
+                                break;
+                            }
+                            else if (existFile.getFilename().equals(file.getFilename()) &&
+                                     existFile.getAuthor().equals(file.getAuthor()) &&
+                                     (Long.parseLong(existFile.getDate()) >= Long.parseLong(file.getDate()))) {
+                                isExists = true;
+                                break;
+                            }
+                            k++;
+
+                        }
+
+                        if (isReplase) {
+                            accessFiles.set(k, file);
+                        }
+
+                        if (!isExists)
+                            accessFiles.add(file);
                     }
                 }
 

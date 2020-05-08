@@ -57,7 +57,7 @@ public class FilterFileController {
             }
             else {
                 for (File file : allFile) {
-                    Access access = accessRepository.findByUsernameAndFilename(username, file.getFilename());
+                    Access access = accessRepository.findByUsernameAndIdFile(username, String.valueOf(file.getId()));
                     if (access != null) {
                         allFileWithPermission.add(file);
                     }
