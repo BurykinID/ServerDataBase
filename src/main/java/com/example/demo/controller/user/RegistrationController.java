@@ -1,9 +1,11 @@
 package com.example.demo.controller.user;
 
+import com.example.demo.config.component.JwtToken;
 import com.example.demo.entity.User;
 import com.example.demo.forJsonObject.Response;
 import com.example.demo.forJsonObject.user.UserJSON;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.role.Role;
 import com.example.demo.service.UserService;
 import com.google.gson.Gson;
 import org.springframework.http.HttpStatus;
@@ -13,21 +15,22 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.NoSuchAlgorithmException;
 
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 
 @RestController
 public class RegistrationController {
 
     private final UserService userService;
     private final UserRepository userRepository;
+    private final JwtToken jwtToken;
 //    private HashData hashData = new HashData();
 
-    public RegistrationController (UserService userService, UserRepository userRepository) {
+
+    public RegistrationController (UserService userService, UserRepository userRepository, JwtToken jwtToken) {
         this.userService = userService;
         this.userRepository = userRepository;
+        this.jwtToken = jwtToken;
     }
-
 
     @PostMapping("/registration")
     public ResponseEntity create(@RequestBody UserJSON user) throws NoSuchAlgorithmException {
@@ -60,6 +63,34 @@ public class RegistrationController {
         else {
             return new ResponseEntity<>("Activate code does not found", NOT_FOUND);
         }
+
+    }
+
+    @PostMapping("/admin/registration")
+    public ResponseEntity createAdmin(@RequestHeader ("Authorization") String token,
+                                      @RequestBody UserJSON userJSON) {
+
+        User admin = userRepository.findByUsername(jwtToken.getUsernameFromToken(token.substring(7)));
+
+        if (admin.getRoles().contains(Role.ADMIN)) {
+            String username = userJSON.getUsername();
+            String password = userJSON.getPassword();
+            String encodedPassword = new BCryptPasswordEncoder().encode(password);
+
+            User user1 = new User();
+            user1.setUsername(username);
+            user1.setPassword(encodedPassword);
+            user1.setEmail(userJSON.getEmail());
+
+            if (!userService.addUser(user1, Role.ADMIN)) {
+                return new ResponseEntity<>("User already exists", HttpStatus.FORBIDDEN);
+            }
+            return new ResponseEntity<>("User is create", HttpStatus.OK);
+        }
+
+        return new ResponseEntity("Access denied", FORBIDDEN);
+
+
 
     }
 

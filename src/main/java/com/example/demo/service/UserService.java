@@ -65,6 +65,38 @@ public class UserService implements UserDetailsService {
 
     }
 
+    public boolean addUser(User user, Role admin) {
+        User userFromDb =  userRepository.findByUsername(user.getUsername());
+
+        if (userFromDb != null) {
+            return false;
+        }
+
+        userFromDb = userRepository.findByEmail(user.getEmail());
+
+        if (userFromDb != null) {
+            return false;
+        }
+
+        Set<Role> roles = new HashSet<>();
+        roles.add(Role.USER);
+        roles.add(Role.ADMIN);
+        user.setRoles(roles);
+        user.setActivationCode(UUID.randomUUID().toString());
+
+        userRepository.save(user);
+
+        if (!StringUtils.isEmpty(user.getEmail())) {
+
+            String message = "Hello, " + user.getUsername() + "!\n" +
+                    "Welcome to Service. Please, visit to next link for activate your account: http://localhost:8080/activate/" + user.getActivationCode();
+
+            mailSender.send(user.getEmail(), "Activation code", message);
+        }
+
+        return true;
+    }
+
     public boolean activateUser (String code) {
 
         User user = userRepository.findByActivationCode(code);
