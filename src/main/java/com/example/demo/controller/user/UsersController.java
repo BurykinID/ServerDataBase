@@ -8,6 +8,7 @@ import com.example.demo.repository.AccessRepository;
 import com.example.demo.repository.FileRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.forJsonObject.user.ArrayUsers;
+import com.example.demo.role.Role;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import static com.example.demo.role.Role.ADMIN;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
@@ -83,6 +85,12 @@ public class UsersController {
             }
         }
 
+        ArrayList<User> admins = userRepository.findByRoles(ADMIN);
+
+        for (User usernameAdmin : admins) {
+            userForPermit.add(usernameAdmin.getUsername());
+        }
+        
         arrayUsers.setUserByName(userForPermit);
 
         if (arrayUsers != null && userForPermit.size() > 0) {
