@@ -31,18 +31,18 @@ public class UserService implements UserDetailsService {
         return userRepository.findByUsername(username);
     }
 
-    public boolean addUser(User user) {
+    public String addUser(User user) {
 
         User userFromDb =  userRepository.findByUsername(user.getUsername());
 
         if (userFromDb != null) {
-            return false;
+            return "";
         }
 
         userFromDb = userRepository.findByEmail(user.getEmail());
 
         if (userFromDb != null) {
-            return false;
+            return "";
         }
 
         Set<Role> roles = new HashSet<>();
@@ -53,15 +53,17 @@ public class UserService implements UserDetailsService {
 
         userRepository.save(user);
 
+        String message = null;
+
         if (!StringUtils.isEmpty(user.getEmail())) {
 
-            String message = "Hello, " + user.getUsername() + "!\n" +
+            message = "Hello, " + user.getUsername() + "! " +
                     "Welcome to Service. Please, visit to next link for activate your account: http://localhost:8080/activate/" + user.getActivationCode();
 
-            mailSender.send(user.getEmail(), "Activation code", message);
+            //mailSender.send(user.getEmail(), "Activation code", message);
         }
 
-        return true;
+        return message;
 
     }
 
