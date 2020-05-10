@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import static com.example.demo.role.Role.ADMIN;
-import static com.example.demo.role.Role.GMADMIN;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
