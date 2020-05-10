@@ -46,8 +46,8 @@ public class UserService implements UserDetailsService {
         }
 
         Set<Role> roles = new HashSet<>();
-        roles.add(Role.USER);
-        //roles.add(Role.ADMIN);
+        roles.add(Role.USER);/*
+        roles.add(Role.ADMIN);*/
         user.setRoles(roles);
         user.setActivationCode(UUID.randomUUID().toString());
 

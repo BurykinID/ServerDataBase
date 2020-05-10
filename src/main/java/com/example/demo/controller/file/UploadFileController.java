@@ -40,8 +40,6 @@ public class UploadFileController {
     private final AccessRepository accessRepository;
     private final JwtToken jwtToken;
 
-    String upl = null;
-
     public UploadFileController (FileRepository fileRepository, AccessRepository accessRepository, JwtToken jwtToken) {
         this.fileRepository = fileRepository;
         this.accessRepository = accessRepository;
@@ -143,78 +141,9 @@ public class UploadFileController {
                 uploadDir.mkdir();
             }
 
-            /*StringBuilder uploadFileNameSb = new StringBuilder();*/
-
             String uploadFileName = fileJson.getFilename();
 
-            /*java.io.File[] files = uploadDir.listFiles();
-            ArrayList<String> listFileName = new ArrayList<>();
-            for (java.io.File fileForBruteForce : files ) {
-                listFileName.add(fileForBruteForce.getName());
-            }
-
-            short countFiles = 0;
-
-            for (String fileNameForBruteForce : listFileName) {
-                if (fileNameForBruteForce.equals(uploadFileName)) {
-                    fileExistence = true;
-                }
-                else {
-                    String[] fileInfo = fileNameForBruteForce.split("\\.");
-
-                    if (fileInfo.length > 0) {
-                        String filenameForStr = fileInfo[0];
-                        String typeFile = fileInfo[fileInfo.length -1];
-                        int begin = filenameForStr.indexOf("(");
-                        if (begin != -1) {
-                            int end = filenameForStr.indexOf(")");
-                            StringBuilder filenameForEquals = new StringBuilder();
-                            filenameForEquals.append(filenameForStr.substring(0, begin));
-                            filenameForEquals.append(".");
-                            filenameForEquals.append(typeFile);
-                            if (filenameForEquals.toString().equals(uploadFileName)) {
-                                short nowCountFiles = Short.parseShort(filenameForStr.substring(begin+1, end));
-                                if (nowCountFiles > countFiles)
-                                    countFiles = nowCountFiles;
-                            }
-                        }
-                    }
-
-                }
-
-            }
-
-            if (fileExistence) {
-
-                countFiles += 1;
-
-                String[] lotOfString = uploadFileName.split("\\.");
-                String filenameWithoutType = null;
-                String typeFile = null;
-
-                if (lotOfString.length > 0) {
-                    int lengthLotOfString = lotOfString.length;
-                    filenameWithoutType = lotOfString[0];
-                    typeFile = lotOfString[lengthLotOfString-1];
-                }
-
-                uploadFileNameSb.append(filenameWithoutType);
-                uploadFileNameSb.append("(");
-                uploadFileNameSb.append(countFiles);
-                uploadFileNameSb.append(").");
-                uploadFileNameSb.append(typeFile);
-
-                uploadFileName = uploadFileNameSb.toString();
-
-            }
-
-            StringBuilder uploadPathFileSb = new StringBuilder();
-            uploadPathFileSb.append(uploadPath);
-            uploadPathFileSb.append(uploadFileName);*/
-
-            //String uploadPathFile = uploadPathFileSb.toString();
-
-            long time = new Date().getTime();
+                long time = new Date().getTime();
             String uploadDate = String.valueOf(time);
 
             ArrayList<String> accessList = new ArrayList<>();
@@ -232,8 +161,6 @@ public class UploadFileController {
             catch (ArrayIndexOutOfBoundsException e) {
                 tags.add(fileJson.getTag().trim());
             }
-
-            //java.io.File fileWithSize = null;
 
             String uploadFileSize = Calc.getFileSize(fileJson.getContent().length());
             UUID id = UUID.randomUUID();
@@ -254,8 +181,6 @@ public class UploadFileController {
 
             }
 
-
-
             try{
                 byte[] decodedBytes = Base64.getDecoder().decode(fileJson.getContent());
                 Files.write(Paths.get(uploadPath + id), decodedBytes);
@@ -270,9 +195,6 @@ public class UploadFileController {
             else {
                 return new ResponseEntity<>("Access denied", FORBIDDEN);
             }
-
-
-
 
         }
 

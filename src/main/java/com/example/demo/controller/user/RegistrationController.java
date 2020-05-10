@@ -4,6 +4,7 @@ import com.example.demo.config.component.JwtToken;
 import com.example.demo.entity.User;
 import com.example.demo.forJsonObject.Response;
 import com.example.demo.forJsonObject.user.UserJSON;
+import com.example.demo.forJsonObject.user.Username;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.role.Role;
 import com.example.demo.service.UserService;
@@ -14,7 +15,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.Set;
+import java.util.UUID;
 
+import static com.example.demo.role.Role.ADMIN;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
@@ -72,7 +76,7 @@ public class RegistrationController {
 
         User admin = userRepository.findByUsername(jwtToken.getUsernameFromToken(token.substring(7)));
 
-        if (admin.getRoles().contains(Role.ADMIN)) {
+        if (admin.getRoles().contains(ADMIN)) {
             String username = userJSON.getUsername();
             String password = userJSON.getPassword();
             String encodedPassword = new BCryptPasswordEncoder().encode(password);
@@ -93,5 +97,54 @@ public class RegistrationController {
 
 
     }
+
+    @PostMapping("/admin/deactivate")
+    public ResponseEntity deactivateAdmin(@RequestHeader ("Authorization") String token,
+                                          @RequestBody Username username) {
+
+        User GMadmin = userRepository.findByUsername(jwtToken.getUsernameFromToken(token.substring(7)));
+
+        if (GMadmin.getRoles().contains(ADMIN)) {
+            User user = userRepository.findByUsername(username.getUsername());
+
+            if (!user.getUsername().equals(GMadmin.getUsername())) {
+                user.setActivationCode(String.valueOf(UUID.randomUUID()));
+                userRepository.save(user);
+                return new ResponseEntity("User has deactivate", OK);
+            }
+            else {
+                return new ResponseEntity("Access denied", FORBIDDEN);
+            }
+
+
+        }
+        else {
+            return new ResponseEntity("Access denied", FORBIDDEN);
+        }
+
+    }
+
+    @PostMapping("/admin/clear")
+    public ResponseEntity clearAdmin(@RequestHeader ("Authorization") String token,
+                                     @RequestBody Username username) {
+
+        User GMadmin = userRepository.findByUsername(jwtToken.getUsernameFromToken(token.substring(7)));
+
+        if (GMadmin.getRoles().contains(ADMIN)) {
+            User user = userRepository.findByUsername(username.getUsername());
+            if (user.getRoles().contains(ADMIN)) {
+                Set<Role> roles = user.getRoles();
+                roles.remove(ADMIN);
+                user.setRoles(roles);
+            }
+            userRepository.save(user);
+            return new ResponseEntity("Admin account has deactivate", OK);
+        }
+        else {
+            return new ResponseEntity("Access denied", FORBIDDEN);
+        }
+
+    }
+
 
 }
