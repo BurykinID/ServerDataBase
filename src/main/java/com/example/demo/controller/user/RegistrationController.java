@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static com.example.demo.role.Role.ADMIN;
+import static com.example.demo.role.Role.GMADMIN;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
@@ -48,12 +49,10 @@ public class RegistrationController {
         user1.setPassword(encodedPassword);
         user1.setEmail(user.getEmail());
 
-        String result = userService.addUser(user1);
-
-        if (result.equals("")) {
+        if (!userService.addUser(user1)) {
             return new ResponseEntity<>("User already exists", HttpStatus.FORBIDDEN);
         }
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>("User is create", HttpStatus.OK);
     }
 
     //success
