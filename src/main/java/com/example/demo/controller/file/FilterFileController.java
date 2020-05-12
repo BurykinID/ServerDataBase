@@ -7,6 +7,7 @@ import com.example.demo.entity.User;
 import com.example.demo.forJsonObject.Response;
 import com.example.demo.forJsonObject.file.FileJsonOutput;
 import com.example.demo.forJsonObject.file.filter.Filter;
+import com.example.demo.forJsonObject.file.forUpload.FileJson;
 import com.example.demo.forJsonObject.file.forUpload.Tag;
 import com.example.demo.forJsonObject.user.Username;
 import com.example.demo.repository.AccessRepository;
@@ -14,6 +15,7 @@ import com.example.demo.repository.FileRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.role.Role;
 import com.google.gson.Gson;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -48,7 +50,7 @@ public class FilterFileController {
         User user = userRepository.findByUsername(username);
 
         if (user != null) {
-            ArrayList<File> allFile = fileRepository.findAll();
+            ArrayList<File> allFile = fileRepository.findAll(Sort.by("date").descending());
             ArrayList<FileJsonOutput> fileJson = new ArrayList<>();
             ArrayList<File> allFileWithPermission = new ArrayList<>();
 
@@ -64,18 +66,23 @@ public class FilterFileController {
                 }
             }
 
-            if (allFileWithPermission != null && allFileWithPermission.size() > 0) {
+            if (allFileWithPermission.size() > 0) {
                 for (File file : allFileWithPermission) {
 
                     for (Tag tag : filter.getTag())
 
                     if (file.getTag().contains(tag.getTag())) {
-                        fileJson.add(new FileJsonOutput(file.getFilename(), file.getAuthor(), file.getEditor(), file.getDate(), file.getTag()));
-                        break;
+
+                        //проверка на то, что файлов с таким именем и автором уже нет
+                        if (!isExist(fileJson, file)) {
+                            fileJson.add(new FileJsonOutput(file.getFilename(), file.getAuthor(), file.getEditor(), file.getDate(), file.getTag()));
+                            break;
+                        }
+
                     }
 
                 }
-                if (fileJson != null && fileJson.size() > 0) {
+                if (fileJson.size() > 0) {
                     responseString = gson.toJson(fileJson);
                     return new ResponseEntity<>(responseString, HttpStatus.OK);
                 }
@@ -92,5 +99,20 @@ public class FilterFileController {
         }
 
     }
+
+    public boolean isExist(ArrayList<FileJsonOutput> fileJson, File file) {
+
+        if (fileJson != null) {
+            for (FileJsonOutput fileJsonOutput : fileJson) {
+                if (fileJsonOutput.getAuthor().equals(file.getAuthor()) && fileJsonOutput.getFilename().equals(file.getFilename())) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+
+    }
+
 
 }

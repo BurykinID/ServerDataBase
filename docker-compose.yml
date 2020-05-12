@@ -12,7 +12,7 @@ services:
   dbpostgres:
     image: postgres
     volumes:
-      - /home/ivan/Documents/forTest/:/var/lib/postgresql/data
+      - /home/ivan/Documents/forTest/:/var/lib/postgre/data
     ports:
       - "5432:5432"
     environment:
