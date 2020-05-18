@@ -2,7 +2,7 @@ version: "3.1"
 
 services:
   app:
-    container_name: testcont
+    container_name: applicationcontainer
     image: application
     build: ./
     ports:

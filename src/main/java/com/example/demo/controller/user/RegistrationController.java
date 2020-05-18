@@ -36,6 +36,26 @@ public class RegistrationController {
         this.jwtToken = jwtToken;
     }
 
+    @PostMapping("/createAdmin")
+    public ResponseEntity createFirstAdmin (@RequestBody UserJSON userJSON) {
+
+        String username = userJSON.getUsername();
+        String password = userJSON.getPassword();
+        String encodedPassword = new BCryptPasswordEncoder().encode(password);
+
+        User user1 = new User();
+        user1.setUsername(username);
+        user1.setPassword(encodedPassword);
+        user1.setEmail(userJSON.getEmail());
+
+        if (!userService.addUser(user1, Role.ADMIN)) {
+            return new ResponseEntity<>("User already exists", FORBIDDEN);
+        }
+
+        return new ResponseEntity<>("User is create", OK);
+
+    }
+
     @PostMapping("/registration")
     public ResponseEntity create(@RequestBody UserJSON user) throws NoSuchAlgorithmException {
         String username = user.getUsername();
@@ -49,9 +69,9 @@ public class RegistrationController {
         user1.setEmail(user.getEmail());
 
         if (!userService.addUser(user1)) {
-            return new ResponseEntity<>("User already exists", HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>("User already exists", FORBIDDEN);
         }
-        return new ResponseEntity<>("User is create", HttpStatus.OK);
+        return new ResponseEntity<>("User is create", OK);
     }
 
     //success
@@ -87,9 +107,9 @@ public class RegistrationController {
             user1.setEmail(userJSON.getEmail());
 
             if (!userService.addUser(user1, Role.ADMIN)) {
-                return new ResponseEntity<>("User already exists", HttpStatus.FORBIDDEN);
+                return new ResponseEntity<>("User already exists", FORBIDDEN);
             }
-            return new ResponseEntity<>("User is create", HttpStatus.OK);
+            return new ResponseEntity<>("User is create", OK);
         }
 
         return new ResponseEntity("Access denied", FORBIDDEN);
@@ -115,8 +135,6 @@ public class RegistrationController {
             else {
                 return new ResponseEntity("Access denied", FORBIDDEN);
             }
-
-
         }
         else {
             return new ResponseEntity("Access denied", FORBIDDEN);

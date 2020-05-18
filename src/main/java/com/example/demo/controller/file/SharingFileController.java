@@ -46,42 +46,42 @@ public class SharingFileController {
 
     // по id
     @PostMapping(value = "/file/read/{id}")
-    public ResponseEntity updReadListWithJson(@RequestHeader("Authorization") String token,
+    public ResponseEntity updReadForFile(@RequestHeader("Authorization") String token,
                                               @RequestBody UserAccess userAccess,
                                               @PathVariable("id") String id) {
         return updReadPermit(userAccess, id, "1", token);
     }
 
     @PostMapping(value = "/file/write/{id}")
-    public ResponseEntity updWriteListWithJson(@RequestHeader("Authorization") String token,
+    public ResponseEntity updWriteForFile(@RequestHeader("Authorization") String token,
                                                @RequestBody UserAccess userAccess,
                                                @PathVariable("id") String id) {
         return updPermit(userAccess, id, "2", token);
     }
 
     @PostMapping(value = "/file/delete/{id}")
-    public ResponseEntity updDeleteListWithJson(@RequestHeader("Authorization") String token,
+    public ResponseEntity updDeleteForFile(@RequestHeader("Authorization") String token,
                                                 @RequestBody UserAccess userAccess,
                                                 @PathVariable("id") String id) {
         return updPermit(userAccess, id, "3", token);
     }
 
     @PostMapping(value = "/file/drop/read/{id}")
-    public ResponseEntity dropReadListWithJson(@RequestHeader("Authorization") String token,
+    public ResponseEntity dropReadForFile(@RequestHeader("Authorization") String token,
                                               @RequestBody UserAccess userAccess,
                                               @PathVariable("id") String id) {
         return deletePermit(userAccess, id, "0", token);
     }
 
     @PostMapping(value = "/file/drop/write/{id}")
-    public ResponseEntity dropWritedListWithJson(@RequestHeader("Authorization") String token,
+    public ResponseEntity dropWriteForFile(@RequestHeader("Authorization") String token,
                                                @RequestBody UserAccess userAccess,
                                                @PathVariable("id") String id) {
         return deletePermit(userAccess, id, "1", token);
     }
 
     @PostMapping(value = "/file/drop/delete/{id}")
-    public ResponseEntity dropDeleteListWithJson(@RequestHeader("Authorization") String token,
+    public ResponseEntity dropDeleteForFile(@RequestHeader("Authorization") String token,
                                                @RequestBody UserAccess userAccess,
                                                @PathVariable("id") String id) {
         return deletePermit(userAccess, id, "2", token);
@@ -90,45 +90,45 @@ public class SharingFileController {
     // по filename
 
     @PostMapping(value = "/file/read/all/{filename}")
-    public ResponseEntity updAllReadListWithJson(@RequestHeader("Authorization") String token,
+    public ResponseEntity updAllReadForFile(@RequestHeader("Authorization") String token,
                                               @RequestBody UserAccessAll userAccessAll,
                                               @PathVariable("filename") String filename) {
         return updAllReadPermit(userAccessAll, filename, "1", token);
     }
 
     @PostMapping(value = "/file/write/all/{filename}")
-    public ResponseEntity updAllWriteListWithJson(@RequestHeader("Authorization") String token,
+    public ResponseEntity updAllWriteForFile(@RequestHeader("Authorization") String token,
                                                  @RequestBody UserAccessAll userAccessAll,
                                                  @PathVariable("filename") String filename) {
         return updAllPermit(userAccessAll, filename, "2", token);
     }
 
     @PostMapping(value = "/file/delete/all/{filename}")
-    public ResponseEntity updAllDeleteListWithJson(@RequestHeader("Authorization") String token,
+    public ResponseEntity updAllDeleteForFile(@RequestHeader("Authorization") String token,
                                                  @RequestBody UserAccessAll userAccessAll,
                                                  @PathVariable("filename") String filename) {
         return updAllPermit(userAccessAll, filename, "3", token);
     }
 
     @PostMapping(value = "/file/drop/read/all/{filename}")
-    public ResponseEntity dropAllReadListWithJson(@RequestHeader("Authorization") String token,
+    public ResponseEntity dropAllReadForFile(@RequestHeader("Authorization") String token,
+                                                 @RequestBody UserAccessAll userAccessAll,
+                                                 @PathVariable("filename") String filename) {
+        return deleteAllPermit(userAccessAll, filename, "0", token);
+    }
+
+    @PostMapping(value = "/file/drop/write/all/{filename}")
+    public ResponseEntity dropAllWriteForFile(@RequestHeader("Authorization") String token,
                                                  @RequestBody UserAccessAll userAccessAll,
                                                  @PathVariable("filename") String filename) {
         return deleteAllPermit(userAccessAll, filename, "1", token);
     }
 
-    @PostMapping(value = "/file/drop/write/all/{filename}")
-    public ResponseEntity dropAllWriteListWithJson(@RequestHeader("Authorization") String token,
+    @PostMapping(value = "/file/drop/delete/all/{filename}")
+    public ResponseEntity dropAllDeleteForFile(@RequestHeader("Authorization") String token,
                                                  @RequestBody UserAccessAll userAccessAll,
                                                  @PathVariable("filename") String filename) {
         return deleteAllPermit(userAccessAll, filename, "2", token);
-    }
-
-    @PostMapping(value = "/file/drop/delete/all/{filename}")
-    public ResponseEntity dropAllDeleteListWithJson(@RequestHeader("Authorization") String token,
-                                                 @RequestBody UserAccessAll userAccessAll,
-                                                 @PathVariable("filename") String filename) {
-        return deleteAllPermit(userAccessAll, filename, "3", token);
     }
 
     // для расшаривания по filename и author
@@ -146,12 +146,13 @@ public class SharingFileController {
             boolean isAdmin = false;
 
             User user = userRepository.findByUsername(username);
-            ArrayList<File> files = fileRepository.findByFilenameAndAuthor(filename, userAccessAll.getAuthor(), Sort.by("data").ascending());
+            ArrayList<File> files = fileRepository.findByFilenameAndAuthor(filename, userAccessAll.getAuthor(), Sort.by("date").ascending());
 
             if (user != null) {
 
-                for (File file : files) {
-                    if (files != null) {
+                if (files .size() >= 1) {
+                    for (File file : files) {
+
                         boolean isAuthor = file.getAuthor().equals(username);
 
                         if (!isAuthor) {
@@ -215,10 +216,12 @@ public class SharingFileController {
                         else {
                             return new ResponseEntity<>("Access denied", FORBIDDEN);
                         }
-                    }
-                    else {
-                        return new ResponseEntity<>("File does not found", NOT_FOUND);
-                    }
+
+                }
+                }
+
+                else {
+                    return new ResponseEntity<>("File does not found", NOT_FOUND);
                 }
 
                 return new ResponseEntity<>(gson.toJson(accessAnwerUser), OK);
@@ -253,7 +256,7 @@ public class SharingFileController {
             ArrayList<File> files = fileRepository.findByFilenameAndAuthor(filename, userAccessAll.getAuthor(), Sort.by("date").ascending());
 
             if (user != null) {
-                if (files != null) {
+                if (files.size() >= 1) {
 
                     for (File file : files) {
                         boolean isAuthor = file.getAuthor().equals(username);
@@ -284,7 +287,7 @@ public class SharingFileController {
                                                     access.setAccess(lvlAccessInput);
                                             }
                                             else {
-                                                access = new Access(file.getFilename(), newUser.getUsername(), lvlAccessInput);
+                                                access = new Access(String.valueOf(file.getId()), newUser.getUsername(), lvlAccessInput);
                                             }
                                             accessRepository.save(access);
                                             // в любом случае помещаем пользователя в список тех, кому успешно разрешён доступ
@@ -349,10 +352,10 @@ public class SharingFileController {
             boolean isAdmin = false;
 
             User user = userRepository.findByUsername(username);
-            ArrayList<File> files = fileRepository.findByFilenameAndAuthor(filename, userAccessAll.getAuthor(), Sort.by("data").ascending());
+            ArrayList<File> files = fileRepository.findByFilenameAndAuthor(filename, userAccessAll.getAuthor(), Sort.by("date").ascending());
 
             if (user != null) {
-                if (files != null) {
+                if (files.size() >= 1) {
 
                     for (File file : files) {
                         boolean isAuthor = file.getAuthor().equals(username);

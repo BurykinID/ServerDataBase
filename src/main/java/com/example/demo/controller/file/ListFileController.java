@@ -93,7 +93,7 @@ public class ListFileController {
                 ArrayList<FileJsonOutput> jsonFiles = new ArrayList<>();
 
                 for (File file : accessFiles) {
-                    jsonFiles.add(new FileJsonOutput(file.getFilename(), file.getAuthor(), file.getAuthor(), file.getDate(), file.getTag()));
+                    jsonFiles.add(new FileJsonOutput(String.valueOf(file.getId()),file.getFilename(), file.getAuthor(), file.getAuthor(), file.getDate(), file.getTag()));
                 }
 
                 String responseString = gson.toJson(jsonFiles);
@@ -141,7 +141,7 @@ public class ListFileController {
                     ArrayList<FileJsonOutput> jsonFiles = new ArrayList<>();
 
                     for (File file : accessFiles) {
-                        jsonFiles.add(new FileJsonOutput(file.getFilename(), file.getAuthor(), file.getAuthor(), file.getDate(), file.getTag()));
+                        jsonFiles.add(new FileJsonOutput(String.valueOf(file.getId()),file.getFilename(), file.getAuthor(), file.getAuthor(), file.getDate(), file.getTag()));
                     }
 
                     String responseString = gson.toJson(jsonFiles);

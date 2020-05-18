@@ -75,7 +75,7 @@ public class FilterFileController {
 
                         //проверка на то, что файлов с таким именем и автором уже нет
                         if (!isExist(fileJson, file)) {
-                            fileJson.add(new FileJsonOutput(file.getFilename(), file.getAuthor(), file.getEditor(), file.getDate(), file.getTag()));
+                            fileJson.add(new FileJsonOutput(String.valueOf(file.getId()),file.getFilename(), file.getAuthor(), file.getEditor(), file.getDate(), file.getTag()));
                             break;
                         }
 
