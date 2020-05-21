@@ -17,6 +17,7 @@ import com.example.demo.role.Role;
 import com.google.gson.Gson;
 import io.jsonwebtoken.Jwt;
 import org.apache.commons.io.FileUtils;
+import org.hibernate.validator.internal.metadata.aggregated.rule.OverridingMethodMustNotAlterParameterConstraints;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -177,6 +178,66 @@ public class GetFileController {
 
     }
 
+    @PostMapping(value = "/file/{id}")
+    public ResponseEntity getFileForId(@RequestHeader ("Authorization") String token,
+                                       @PathVariable ("id") String idFile) {
 
+        User user = userRepository.findByUsername(jwtToken.getUsernameFromToken(token.substring(7)));
+        Gson gson = new Gson();
+
+        if (user != null) {
+
+            File file = fileRepository.findById(UUID.fromString(idFile));
+
+            if (file != null) {
+
+                boolean isAdmin = user.getRoles().contains(ADMIN);
+
+                if (isAdmin) {
+                    try {
+                        byte[]fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
+                        ReturnFile returnFile = new ReturnFile();
+                        returnFile.setInfo(Base64.getEncoder().encodeToString(fileContent));
+
+                        String responseString = gson.toJson(returnFile);
+                        return new ResponseEntity<>(responseString, OK);
+                    } catch (IOException e) {
+                        return new ResponseEntity<>("Error Base64 encode", HttpStatus.UNPROCESSABLE_ENTITY);
+                    }
+                }
+                else {
+
+                    Access access = accessRepository.findByUsernameAndIdFile(user.getUsername(), idFile);
+                    if (access != null) {
+
+                        if (Integer.parseInt(access.getAccess()) > 1) {
+
+                            try {
+                                byte[]fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
+                                ReturnFile returnFile = new ReturnFile();
+                                returnFile.setInfo(Base64.getEncoder().encodeToString(fileContent));
+
+                                String responseString = gson.toJson(returnFile);
+                                return new ResponseEntity<>(responseString, OK);
+                            } catch (IOException e) {
+                                return new ResponseEntity<>("Error Base64 encode", HttpStatus.UNPROCESSABLE_ENTITY);
+                            }
+
+                        }
+
+                        return new ResponseEntity("Access denied", FORBIDDEN);
+
+                    }
+                    return new ResponseEntity("Access denied", FORBIDDEN);
+
+
+                }
+
+            }
+
+        }
+
+        return new ResponseEntity("User does not found", NOT_FOUND);
+    }
 
 }

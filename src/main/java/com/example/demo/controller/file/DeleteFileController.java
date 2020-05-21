@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 @RestController()
-public class DeleteFileCOntroller {
+public class DeleteFileController {
 
     private final FileRepository fileRepository;
     private final UserRepository userRepository;
@@ -30,7 +30,7 @@ public class DeleteFileCOntroller {
     @Value ("${upload.path}")
     private String uploadPath;
 
-    public DeleteFileCOntroller (FileRepository fileRepository, UserRepository userRepository, AccessRepository accessRepository, JwtToken jwtToken) {
+    public DeleteFileController (FileRepository fileRepository, UserRepository userRepository, AccessRepository accessRepository, JwtToken jwtToken) {
         this.fileRepository = fileRepository;
         this.userRepository = userRepository;
         this.accessRepository = accessRepository;

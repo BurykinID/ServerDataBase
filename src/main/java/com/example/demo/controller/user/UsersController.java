@@ -22,7 +22,7 @@ import static com.example.demo.role.Role.ADMIN;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
-@RequestMapping("listUser")
+@RequestMapping()
 public class UsersController {
 
     private final UserRepository userRepository;
@@ -56,7 +56,7 @@ public class UsersController {
     }
 
     //succes
-    @GetMapping(value = "{name}")
+    @GetMapping(value = "/listUser/{name}")
     public ResponseEntity getUser(@RequestHeader ("Authorization") String token,
                                   @PathVariable (name = "name") String name) {
 
@@ -68,7 +68,7 @@ public class UsersController {
 
     }
 
-    @GetMapping(value = "{id}")
+    @GetMapping(value = "listUser/file/{id}")
     public ResponseEntity getUserForFile(@RequestHeader ("Authorization") String token,
                                          @PathVariable (name = "id") String id) {
 

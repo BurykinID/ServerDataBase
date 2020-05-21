@@ -7,6 +7,8 @@ import com.example.demo.entity.User;
 import com.example.demo.forJsonObject.Response;
 import com.example.demo.forJsonObject.Token;
 import com.example.demo.forJsonObject.file.FileJsonOutput;
+import com.example.demo.forJsonObject.file.forAccess.AccessFile;
+import com.example.demo.forJsonObject.file.forAccess.Option;
 import com.example.demo.forJsonObject.user.Username;
 import com.example.demo.repository.AccessRepository;
 import com.example.demo.repository.FileRepository;
@@ -14,17 +16,15 @@ import com.example.demo.repository.UserRepository;
 import com.example.demo.role.Role;
 import com.google.gson.Gson;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 import static com.example.demo.role.Role.ADMIN;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 
 @RestController
 public class ListFileController {
@@ -158,6 +158,157 @@ public class ListFileController {
         else {
             return new ResponseEntity<>("User does not found", NOT_FOUND);
         }
+
+    }
+
+    @GetMapping (value = "/listFile/forUser")
+    public ResponseEntity getListFileForAccess (@RequestHeader ("Authorization") String token) {
+
+        Gson gson = new Gson();
+
+        User user = userRepository.findByUsername(jwtToken.getUsernameFromToken(token.substring(7)));
+
+        if (user != null) {
+
+            boolean isAdmin = user.getRoles().contains(ADMIN);
+
+            if (isAdmin) {
+
+                ArrayList<AccessFile> accessFileList = new ArrayList<>();
+
+                for (File file : fileRepository.findAll()) {
+                    ArrayList<Option> optionList = new ArrayList<>();
+                    optionList.add(new Option("read"));
+                    optionList.add(new Option("write"));
+                    optionList.add(new Option("delete"));
+
+                    accessFileList.add(new AccessFile(String.valueOf(file.getId()), file.getFilename(), optionList, file.getTag()));
+
+                }
+
+                return new ResponseEntity(gson.toJson(accessFileList), OK);
+
+            }
+            else {
+                ArrayList<Access> accessList = accessRepository.findByUsername(user.getUsername());
+
+                if (accessList != null) {
+
+                    ArrayList<String> idFileList = new ArrayList<>();
+                    for (int i = 0; i < accessList.size(); i++)
+                        idFileList.add(accessList.get(i).getIdFile());
+
+                    ArrayList<File> fileList = new ArrayList<>();
+                    HashMap<String, String> accessCollection = new HashMap<>();
+
+                    for (String idFile : idFileList) {
+                        fileList.add(fileRepository.findById(UUID.fromString(idFile)));
+                        accessCollection.put(idFile, accessRepository.findByUsernameAndIdFile(user.getUsername(), idFile).getAccess());
+                    }
+
+                    if (fileList.size() > 0) {
+
+                        ArrayList<AccessFile> accessFileList = new ArrayList<>();
+
+                        for (File file : fileList) {
+
+                            ArrayList<Option> optionList = new ArrayList<>();
+
+                            if (Integer.parseInt(accessCollection.get(String.valueOf(file.getId()))) == 1) {
+                                optionList.add(new Option("read"));
+                            }
+                            else if (Integer.parseInt(accessCollection.get(String.valueOf(file.getId()))) == 2) {
+                                optionList.add(new Option("read"));
+                                optionList.add(new Option("write"));
+                            }
+                            else {
+                                optionList.add(new Option("read"));
+                                optionList.add(new Option("write"));
+                                optionList.add(new Option("delete"));
+                            }
+
+                            accessFileList.add(new AccessFile(String.valueOf(file.getId()), file.getFilename(), optionList, file.getTag()));
+                        }
+
+                        return new ResponseEntity(gson.toJson(accessFileList), OK);
+
+                    }
+
+                    return new ResponseEntity("User has not file with access", FORBIDDEN);
+
+                }
+
+                return new ResponseEntity("User has not file with access", FORBIDDEN);
+
+            }
+
+
+
+
+
+        }
+
+        return new ResponseEntity("User does not found", FORBIDDEN);
+
+    }
+
+    @GetMapping (value = "/file/{id}")
+    public ResponseEntity getAccessForFile (@RequestHeader ("Authorization") String token,
+                                            @PathVariable ("id") String idFile) {
+
+        Gson gson = new Gson();
+
+        User user = userRepository.findByUsername(jwtToken.getUsernameFromToken(token.substring(7)));
+
+        if (user != null) {
+
+            File file = fileRepository.findById(UUID.fromString(idFile));
+
+            boolean isAdmin = user.getRoles().contains(ADMIN);
+
+
+
+            if (isAdmin) {
+                ArrayList<Option> optionList = new ArrayList<>();
+                optionList.add(new Option("read"));
+                optionList.add(new Option("write"));
+                optionList.add(new Option("delete"));
+                AccessFile accessFile = new AccessFile(String.valueOf(file.getId()), file.getFilename(), optionList, file.getTag());
+
+                return new ResponseEntity(gson.toJson(accessFile), OK);
+
+            }
+            else {
+
+                Access access = accessRepository.findByUsernameAndIdFile(user.getUsername(), idFile);
+                if (access != null) {
+                    ArrayList<Option> optionList = new ArrayList<>();
+
+                    if (Integer.parseInt(access.getAccess()) == 1) {
+                        optionList.add(new Option("read"));
+                    }
+                    else if (Integer.parseInt(access.getAccess()) == 2) {
+                        optionList.add(new Option("read"));
+                        optionList.add(new Option("write"));
+                    }
+                    else {
+                        optionList.add(new Option("read"));
+                        optionList.add(new Option("write"));
+                        optionList.add(new Option("delete"));
+                    }
+
+                    AccessFile accessFile = new AccessFile(String.valueOf(file.getId()), file.getFilename(), optionList, file.getTag());
+
+                    return new ResponseEntity(gson.toJson(accessFile), OK);
+                }
+
+                return new ResponseEntity("Access denied", FORBIDDEN);
+
+            }
+
+        }
+
+        return new ResponseEntity("User does not found", FORBIDDEN);
 
     }
 
