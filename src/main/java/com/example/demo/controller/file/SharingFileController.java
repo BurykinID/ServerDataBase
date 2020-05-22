@@ -194,7 +194,7 @@ public class SharingFileController {
 
                                         }
                                         else {
-                                            if (responseWithoutError.contains(usernameForShare.get(i)))
+                                            if (!responseWithoutError.contains(usernameForShare.get(i)))
                                                 responseWithoutError.add(usernameForShare.get(i));
                                         }
 
@@ -296,7 +296,7 @@ public class SharingFileController {
 
                                         }
                                         else {
-                                            if (responseWithoutError.contains(usernameForShare.get(i)))
+                                            if (!responseWithoutError.contains(usernameForShare.get(i)))
                                                 responseWithoutError.add(usernameForShare.get(i));
                                         }
 
@@ -398,7 +398,7 @@ public class SharingFileController {
 
                                         }
                                         else {
-                                            if (responseWithoutError.contains(usernameForShare.get(i)))
+                                            if (!responseWithoutError.contains(usernameForShare.get(i)))
                                                 responseWithoutError.add(usernameForShare.get(i));
                                         }
 
@@ -497,7 +497,7 @@ public class SharingFileController {
 
                                     }
                                     else {
-                                        if (responseWithoutError.contains(usernameForShare.get(i)))
+                                        if (!responseWithoutError.contains(usernameForShare.get(i)))
                                             responseWithoutError.add(usernameForShare.get(i));
                                     }
 
@@ -596,7 +596,7 @@ public class SharingFileController {
 
                                     }
                                     else {
-                                        if (responseWithoutError.contains(usernameForShare.get(i)))
+                                        if (!responseWithoutError.contains(usernameForShare.get(i)))
                                             responseWithoutError.add(usernameForShare.get(i));
                                     }
 
@@ -694,7 +694,7 @@ public class SharingFileController {
 
                                     }
                                     else {
-                                        if (responseWithoutError.contains(usernameForShare.get(i)))
+                                        if (!responseWithoutError.contains(usernameForShare.get(i)))
                                             responseWithoutError.add(usernameForShare.get(i));
                                     }
 

@@ -72,4 +72,15 @@ public class User implements UserDetails {
         return true;
     }
 
+    public User(String username, String password, String email, Set<Role> roles) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.roles = roles;
+    }
+
+    public static User createUser(String username, String password, String email, Set<Role> roles) {
+        return new User(username, password, email, roles);
+    }
+
 }
