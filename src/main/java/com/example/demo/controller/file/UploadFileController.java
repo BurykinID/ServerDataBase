@@ -8,22 +8,20 @@ import com.example.demo.forJsonObject.file.Update.FileForUpdate;
 import com.example.demo.forJsonObject.file.forUpload.FileJson;
 import com.example.demo.repository.AccessRepository;
 import com.example.demo.repository.FileRepository;
+import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -48,70 +46,87 @@ public class UploadFileController {
 
     @PostMapping("/update")
     public ResponseEntity saveVersionFile(@RequestHeader("Authorization") String token,
-                                          @RequestBody FileForUpdate file) {
+                                          @RequestParam("file") MultipartFile file,
+                                          @RequestParam("author") String author) {
 
-        File file1 = fileRepository.findById(fileRepository.findByFilenameAndAuthor(file.getFilename(), file.getAuthor(), Sort.by("date").descending()).get(0).getId());
+        File file1 = fileRepository.findById(fileRepository
+                .findByFilenameAndAuthor(file.getOriginalFilename(), author, Sort.by("date").descending())
+                .get(0)
+                .getId());
 
         if (file1 != null) {
             try {
-                byte[]fileContent = FileUtils.readFileToByteArray(new java.io.File(file1.getPath()));
-                String encodedString = Base64.getEncoder().encodeToString(fileContent);
-                if (encodedString != null) {
-                    if (!encodedString.equals(file.getContent())) {
 
-                        String username = jwtToken.getUsernameFromToken(token.substring(7));
-                        String uploadFileName = file.getFilename();
+                ArrayList<Access> accessesList = accessRepository.findByIdFile(String.valueOf(file1.getId()));
 
-                        long time = new Date().getTime();
-                        String uploadDate = String.valueOf(time);
+                if (accessesList.contains(jwtToken.getUsernameFromToken(token.substring(7)))) {
+
+                    BufferedReader br1 = new BufferedReader(new InputStreamReader(new FileInputStream(file1.getPath()), "UTF-8"));
+                    BufferedReader br2 = new BufferedReader(new InputStreamReader(new FileInputStream(uploadPath + ), "UTF-8"));
+                    br1.readLine()
 
 
-                        ArrayList<String> tags = new ArrayList<>();
+                    String username = jwtToken.getUsernameFromToken(token.substring(7));
+                    String uploadFileName = file.getOriginalFilename();
 
-                        tags.addAll(file1.getTag());
+                    long time = new Date().getTime();
+                    String uploadDate = String.valueOf(time);
 
-                        String uploadFileSize = Calc.getFileSize(file.getContent().length());
-                        UUID id = UUID.randomUUID();
-                        File newFile = new File(id, uploadFileName, uploadFileSize , uploadDate, file1.getAuthor(), username, uploadPath + id, tags);
+                    ArrayList<String> tags = new ArrayList<>();
 
-                        boolean notNull = false;
+                    tags.addAll(file1.getTag());
 
-                        // нужно автоматически выдать тот же уровень прав всех, у кого он был на предыдущей версии файла.
+                    String uploadFileSize = Calc.getFileSize(file.getSize());
+                    UUID id = UUID.randomUUID();
+                    File newFile = new File(id, uploadFileName, uploadFileSize , uploadDate, file1.getAuthor(), username, uploadPath + id, tags);
 
-                        if (newFile != null) {
-                            fileRepository.save(newFile);
-                            notNull = true;
+                    boolean notNull = false;
 
-                            for (Access existAccess :accessRepository.findByIdFile(String.valueOf(file1.getId()))) {
+                    // нужно автоматически выдать тот же уровень прав всех, у кого он был на предыдущей версии файла.
 
-                                Access access = new Access();
-                                access.setIdFile(String.valueOf(newFile.getId()));
-                                access.setUsername(existAccess.getUsername());
-                                access.setAccess(existAccess.getAccess());
+                    if (newFile != null) {
+                        fileRepository.save(newFile);
+                        notNull = true;
 
-                                accessRepository.save(access);
+                        for (Access existAccess :accessRepository.findByIdFile(String.valueOf(file1.getId()))) {
 
-                            }
+                            Access access = new Access();
+                            access.setIdFile(String.valueOf(newFile.getId()));
+                            access.setUsername(existAccess.getUsername());
+                            access.setAccess(existAccess.getAccess());
 
-                        }
+                            accessRepository.save(access);
 
-                        try{
-                            byte[] decodedBytes = Base64.getDecoder().decode(file.getContent());
-                            Files.write(Paths.get(uploadPath + id), decodedBytes);
-                        }
-                        catch (IOException e) {
-                            return new ResponseEntity<>("Access denied", FORBIDDEN);
-                        }
-
-                        if (notNull) {
-                            return new ResponseEntity<>("File was updated", OK);
-                        }
-                        else {
-                            return new ResponseEntity<>("Access denied", FORBIDDEN);
                         }
 
                     }
+
+                    try{
+                        Path filepath = Paths.get(uploadPath, String.valueOf(id));
+
+                        OutputStream os = Files.newOutputStream(filepath);
+                        os.write(file.getBytes());
+                    }
+                    catch (IOException e) {
+                        return new ResponseEntity<>("Access denied", FORBIDDEN);
+                    }
+
+                    if (notNull) {
+                        return new ResponseEntity<>("File was updated", OK);
+                    }
+                    else {
+                        return new ResponseEntity<>("Access denied", FORBIDDEN);
+                    }
+
+
+
                 }
+                else {
+                    return new ResponseEntity("Access denied", FORBIDDEN);
+                }
+
+
+
             } catch (IOException e) {
                 return new ResponseEntity<>("Error Base64 encode", UNPROCESSABLE_ENTITY);
             }
@@ -123,11 +138,12 @@ public class UploadFileController {
 
     @PostMapping("/addFile")
     public ResponseEntity saveFile(@RequestHeader("Authorization") String token,
-                                   @RequestBody FileJson fileJson) {
+                                   @RequestParam("file") MultipartFile file,
+                                   @RequestParam ("tag") String tag) {
         File newFile = null;
         boolean fileExistence = false;
 
-        if (fileJson != null) {
+        if (file != null) {
             java.io.File uploadDir = new java.io.File(uploadPath);
             String username = jwtToken.getUsernameFromToken(token.substring(7));
 
@@ -135,7 +151,7 @@ public class UploadFileController {
                 uploadDir.mkdir();
             }
 
-            String uploadFileName = fileJson.getFilename();
+            String uploadFileName = file.getOriginalFilename();
 
             long time = new Date().getTime();
             String uploadDate = String.valueOf(time);
@@ -143,17 +159,15 @@ public class UploadFileController {
             ArrayList<String> tags = new ArrayList<>();
 
             try {
-                fileJson.setTag(fileJson.getTag().replaceAll(" ", ""));
-                String[] userTags = fileJson.getTag().split(",");
-                for (String tagAboutUser : userTags) {
-                    tags.add(tagAboutUser);
-                }
+                tag = tag.replaceAll(" ", "");
+                String[] userTags = tag.split(",");
+                tags.addAll(Arrays.asList(userTags));
             }
             catch (ArrayIndexOutOfBoundsException e) {
-                tags.add(fileJson.getTag().trim());
+                tags.add(tag.trim());
             }
 
-            String uploadFileSize = Calc.getFileSize(fileJson.getContent().length());
+            String uploadFileSize = Calc.getFileSize(file.getSize());
             UUID id = UUID.randomUUID();
             newFile = new File(id, uploadFileName, uploadFileSize , uploadDate, username, username, uploadPath + id, tags);
 
@@ -173,8 +187,12 @@ public class UploadFileController {
             }
 
             try{
-                byte[] decodedBytes = Base64.getDecoder().decode(fileJson.getContent());
-                Files.write(Paths.get(uploadPath + id), decodedBytes);
+
+                Path filepath = Paths.get(uploadPath, String.valueOf(id));
+
+                OutputStream os = Files.newOutputStream(filepath);
+                os.write(file.getBytes());
+
             }
             catch (IOException e) {
                 return new ResponseEntity<>("Access denied", FORBIDDEN);
