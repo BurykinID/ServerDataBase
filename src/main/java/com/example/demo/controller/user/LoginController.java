@@ -4,19 +4,20 @@ import com.example.demo.config.component.JwtRequest;
 import com.example.demo.config.component.JwtResponse;
 import com.example.demo.config.component.JwtToken;
 import com.example.demo.entity.User;
-import com.example.demo.forJsonObject.Response;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
-import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @CrossOrigin
@@ -37,7 +38,7 @@ public class LoginController {
         this.userRepository = userRepository;
     }
 
-    @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
+    @PostMapping(value = "/authenticate")
     public ResponseEntity createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
 
         User user = userRepository.findByUsername(authenticationRequest.getUsername());

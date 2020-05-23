@@ -8,11 +8,9 @@ import com.example.demo.forJsonObject.file.Update.FileForUpdate;
 import com.example.demo.forJsonObject.file.forUpload.FileJson;
 import com.example.demo.repository.AccessRepository;
 import com.example.demo.repository.FileRepository;
-import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -68,13 +65,10 @@ public class UploadFileController {
                         long time = new Date().getTime();
                         String uploadDate = String.valueOf(time);
 
-                        ArrayList<String> accessList = new ArrayList<>();
-                        accessList.add(username);
 
                         ArrayList<String> tags = new ArrayList<>();
 
                         tags.addAll(file1.getTag());
-                        //java.io.File fileWithSize = null;
 
                         String uploadFileSize = Calc.getFileSize(file.getContent().length());
                         UUID id = UUID.randomUUID();
@@ -143,11 +137,8 @@ public class UploadFileController {
 
             String uploadFileName = fileJson.getFilename();
 
-                long time = new Date().getTime();
+            long time = new Date().getTime();
             String uploadDate = String.valueOf(time);
-
-            ArrayList<String> accessList = new ArrayList<>();
-            accessList.add(username);
 
             ArrayList<String> tags = new ArrayList<>();
 

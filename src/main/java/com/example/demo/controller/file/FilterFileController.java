@@ -4,21 +4,20 @@ import com.example.demo.config.component.JwtToken;
 import com.example.demo.entity.Access;
 import com.example.demo.entity.File;
 import com.example.demo.entity.User;
-import com.example.demo.forJsonObject.Response;
 import com.example.demo.forJsonObject.file.FileJsonOutput;
 import com.example.demo.forJsonObject.file.filter.Filter;
-import com.example.demo.forJsonObject.file.forUpload.FileJson;
 import com.example.demo.forJsonObject.file.forUpload.Tag;
-import com.example.demo.forJsonObject.user.Username;
 import com.example.demo.repository.AccessRepository;
 import com.example.demo.repository.FileRepository;
 import com.example.demo.repository.UserRepository;
-import com.example.demo.role.Role;
 import com.google.gson.Gson;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 

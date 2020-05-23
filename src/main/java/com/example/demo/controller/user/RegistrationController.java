@@ -2,14 +2,11 @@ package com.example.demo.controller.user;
 
 import com.example.demo.config.component.JwtToken;
 import com.example.demo.entity.User;
-import com.example.demo.forJsonObject.Response;
 import com.example.demo.forJsonObject.user.UserJSON;
 import com.example.demo.forJsonObject.user.Username;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.role.Role;
 import com.example.demo.service.UserService;
-import com.google.gson.Gson;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;

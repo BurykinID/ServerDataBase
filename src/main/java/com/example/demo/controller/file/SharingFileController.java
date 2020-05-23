@@ -5,25 +5,18 @@ import com.example.demo.entity.Access;
 import com.example.demo.entity.File;
 import com.example.demo.entity.User;
 import com.example.demo.forJsonObject.file.AccessAnwerUser;
-import com.example.demo.forJsonObject.Response;
-import com.example.demo.forJsonObject.user.ArrayUsers;
 import com.example.demo.forJsonObject.user.UserAccess;
 import com.example.demo.forJsonObject.user.UserAccessAll;
 import com.example.demo.forJsonObject.user.Username;
-import com.example.demo.form.FileForm;
 import com.example.demo.repository.AccessRepository;
 import com.example.demo.repository.FileRepository;
 import com.example.demo.repository.UserRepository;
-import com.example.demo.role.Role;
 import com.google.gson.Gson;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Set;
 import java.util.UUID;
 
 import static com.example.demo.role.Role.ADMIN;
@@ -174,7 +167,7 @@ public class SharingFileController {
                                     // проверка на то, что пользователь из списка вообще существует
                                     if (newUser != null) {
 
-                                        if (!checkAdmin(newUser.getUsername())) {
+                                        if (!checkAdmin(newUser.getUsername()) && !newUser.getUsername().equals(file.getAuthor())) {
 
                                             Access access = accessRepository.findByUsernameAndIdFile(newUser.getUsername(), String.valueOf(file.getId()));
 
@@ -276,7 +269,7 @@ public class SharingFileController {
                                     // проверка на то, что пользователь из списка вообще существует
                                     if (newUser != null) {
 
-                                        if (!checkAdmin(newUser.getUsername())) {
+                                        if (!checkAdmin(newUser.getUsername()) && !newUser.getUsername().equals(file.getAuthor())) {
 
                                             Access access = accessRepository.findByUsernameAndIdFile(newUser.getUsername(), String.valueOf(file.getId()));
 
@@ -375,7 +368,7 @@ public class SharingFileController {
                                     // проверка на то, что пользователь из списка вообще существует
                                     if (newUser != null) {
 
-                                        if (!checkAdmin(newUser.getUsername())) {
+                                        if (!checkAdmin(newUser.getUsername()) && !newUser.getUsername().equals(file.getAuthor())) {
 
                                             Access access = accessRepository.findByUsernameAndIdFile(newUser.getUsername(), String.valueOf(file.getId()));
 
@@ -476,7 +469,7 @@ public class SharingFileController {
                                 // проверка на то, что пользователь из списка вообще существует
                                 if (newUser != null) {
 
-                                    if (!checkAdmin(newUser.getUsername())) {
+                                    if (!checkAdmin(newUser.getUsername()) && !newUser.getUsername().equals(file.getAuthor())) {
 
                                         Access access = accessRepository.findByUsernameAndIdFile(newUser.getUsername(), String.valueOf(file.getId()));
 
@@ -576,7 +569,7 @@ public class SharingFileController {
                                 // проверка на то, что пользователь из списка вообще существует
                                 if (newUser != null) {
 
-                                    if (!checkAdmin(newUser.getUsername())) {
+                                    if (!checkAdmin(newUser.getUsername()) && !newUser.getUsername().equals(file.getAuthor())) {
 
                                         Access access = accessRepository.findByUsernameAndIdFile(newUser.getUsername(), String.valueOf(file.getId()));
 
@@ -671,7 +664,7 @@ public class SharingFileController {
                                 // проверка на то, что пользователь из списка вообще существует
                                 if (newUser != null) {
 
-                                    if (!checkAdmin(newUser.getUsername())) {
+                                    if (!checkAdmin(newUser.getUsername()) && !newUser.getUsername().equals(file.getAuthor())) {
 
                                         Access access = accessRepository.findByUsernameAndIdFile(newUser.getUsername(), String.valueOf(file.getId()));
 
