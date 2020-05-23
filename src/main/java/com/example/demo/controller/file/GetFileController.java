@@ -12,12 +12,17 @@ import com.example.demo.repository.FileRepository;
 import com.example.demo.repository.UserRepository;
 import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.UUID;
@@ -42,7 +47,7 @@ public class GetFileController {
 
     @PostMapping (value = {"/getfile"})
     public ResponseEntity getFile(@RequestHeader ("Authorization") String token,
-                                  @RequestBody FileForGet fileforGet) {
+                                                       @RequestBody FileForGet fileforGet) {
 
         ArrayList<File> result = fileRepository.findByFilenameAndAuthor(fileforGet.getFilename(), fileforGet.getAuthor(), Sort.by("date").descending());
 
@@ -57,31 +62,35 @@ public class GetFileController {
                 boolean isAdmin = user.getRoles().contains(ADMIN);
 
                 if (isAdmin) {
+
+                    byte[]fileContent = new byte[0];
                     try {
-                        byte[]fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
+                        fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
                         ReturnFile returnFile = new ReturnFile();
                         returnFile.setInfo(Base64.getEncoder().encodeToString(fileContent));
                         returnFile.setVersion(String.valueOf(result.size()));
 
                         String responseString = gson.toJson(returnFile);
-                        return new ResponseEntity<>(responseString, OK);
+                        return new ResponseEntity<>(responseString, HttpStatus.OK);
                     } catch (IOException e) {
                         return new ResponseEntity<>("Error Base64 encode", HttpStatus.UNPROCESSABLE_ENTITY);
                     }
+
                 }
                 else {
                     Access access = accessRepository.findByUsernameAndIdFile(username, String.valueOf(file.getId()));
                     if (access != null) {
                         if (Integer.parseInt(access.getAccess()) >= 1) {
-                            try {
-                                byte[]fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
 
+                            byte[]fileContent = new byte[0];
+                            try {
+                                fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
                                 ReturnFile returnFile = new ReturnFile();
                                 returnFile.setInfo(Base64.getEncoder().encodeToString(fileContent));
                                 returnFile.setVersion(String.valueOf(result.size()));
 
                                 String responseString = gson.toJson(returnFile);
-                                return new ResponseEntity<>(responseString, OK);
+                                return new ResponseEntity<>(responseString, HttpStatus.OK);
                             } catch (IOException e) {
                                 return new ResponseEntity<>("Error Base64 encode", HttpStatus.UNPROCESSABLE_ENTITY);
                             }
