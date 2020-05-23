@@ -54,69 +54,107 @@ public class UploadFileController {
                 .get(0)
                 .getId());
 
+        String usr = jwtToken.getUsernameFromToken(token.substring(7));
+
         if (file1 != null) {
             try {
 
                 ArrayList<Access> accessesList = accessRepository.findByIdFile(String.valueOf(file1.getId()));
 
-                if (accessesList.contains(jwtToken.getUsernameFromToken(token.substring(7)))) {
+                boolean isEnabled = false;
+
+                for (Access access : accessesList) {
+                    if (access.getUsername().equals(usr)) {
+                        isEnabled = true;
+                        break;
+                    }
+                }
+
+                if (isEnabled) {
 
                     BufferedReader br1 = new BufferedReader(new InputStreamReader(new FileInputStream(file1.getPath()), "UTF-8"));
-                    //BufferedReader br2 = new BufferedReader(new InputStreamReader(new FileInputStream(uploadPath + ), "UTF-8"));
-                    br1.readLine();
 
+                    Path filepath = Paths.get(uploadPath, file.getOriginalFilename());
 
-                    String username = jwtToken.getUsernameFromToken(token.substring(7));
-                    String uploadFileName = file.getOriginalFilename();
+                    OutputStream os = Files.newOutputStream(filepath);
+                    os.write(file.getBytes());
 
-                    long time = new Date().getTime();
-                    String uploadDate = String.valueOf(time);
+                    BufferedReader br2 = new BufferedReader(new InputStreamReader(new FileInputStream(uploadPath + file.getOriginalFilename()), "UTF-8"));
+                    boolean isNotEquals = false;
 
-                    ArrayList<String> tags = new ArrayList<>();
+                    String s;
+                    while (br1.read() != -1) {
+                        s = br1.readLine();
+                        if (!s.equals(br2.readLine())) {
+                            br2.lines();
+                            isNotEquals = true;
+                            br1.close();
+                            br2.close();
+                            break;
+                        }
+                    }
 
-                    tags.addAll(file1.getTag());
+                    java.io.File fileF = new java.io.File(uploadPath + file.getOriginalFilename());
+                    fileF.delete();
 
-                    String uploadFileSize = Calc.getFileSize(file.getSize());
-                    UUID id = UUID.randomUUID();
-                    File newFile = new File(id, uploadFileName, uploadFileSize , uploadDate, file1.getAuthor(), username, uploadPath + id, tags);
+                    if (isNotEquals) {
 
-                    boolean notNull = false;
+                        String username = jwtToken.getUsernameFromToken(token.substring(7));
+                        String uploadFileName = file.getOriginalFilename();
 
-                    // нужно автоматически выдать тот же уровень прав всех, у кого он был на предыдущей версии файла.
+                        long time = new Date().getTime();
+                        String uploadDate = String.valueOf(time);
 
-                    if (newFile != null) {
-                        fileRepository.save(newFile);
-                        notNull = true;
+                        ArrayList<String> tags = new ArrayList<>();
 
-                        for (Access existAccess :accessRepository.findByIdFile(String.valueOf(file1.getId()))) {
+                        tags.addAll(file1.getTag());
 
-                            Access access = new Access();
-                            access.setIdFile(String.valueOf(newFile.getId()));
-                            access.setUsername(existAccess.getUsername());
-                            access.setAccess(existAccess.getAccess());
+                        String uploadFileSize = Calc.getFileSize(file.getSize());
+                        UUID id = UUID.randomUUID();
+                        File newFile = new File(id, uploadFileName, uploadFileSize , uploadDate, file1.getAuthor(), username, uploadPath + id, tags);
 
-                            accessRepository.save(access);
+                        boolean notNull = false;
 
+                        // нужно автоматически выдать тот же уровень прав всех, у кого он был на предыдущей версии файла.
+
+                        if (newFile != null) {
+                            fileRepository.save(newFile);
+                            notNull = true;
+
+                            for (Access existAccess :accessRepository.findByIdFile(String.valueOf(file1.getId()))) {
+
+                                Access access = new Access();
+                                access.setIdFile(String.valueOf(newFile.getId()));
+                                access.setUsername(existAccess.getUsername());
+                                access.setAccess(existAccess.getAccess());
+
+                                accessRepository.save(access);
+
+                            }
+
+                        }
+
+                        try{
+                            filepath = Paths.get(uploadPath, String.valueOf(id));
+
+                            os = Files.newOutputStream(filepath);
+                            os.write(file.getBytes());
+                        }
+                        catch (IOException e) {
+                            return new ResponseEntity<>("Access denied", FORBIDDEN);
+                        }
+
+                        if (notNull) {
+                            return new ResponseEntity<>("File was updated", OK);
+                        }
+                        else {
+                            return new ResponseEntity<>("Access denied", FORBIDDEN);
                         }
 
                     }
 
-                    try{
-                        Path filepath = Paths.get(uploadPath, String.valueOf(id));
 
-                        OutputStream os = Files.newOutputStream(filepath);
-                        os.write(file.getBytes());
-                    }
-                    catch (IOException e) {
-                        return new ResponseEntity<>("Access denied", FORBIDDEN);
-                    }
 
-                    if (notNull) {
-                        return new ResponseEntity<>("File was updated", OK);
-                    }
-                    else {
-                        return new ResponseEntity<>("Access denied", FORBIDDEN);
-                    }
 
 
 
