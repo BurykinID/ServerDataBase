@@ -62,8 +62,8 @@ public class UploadFileController {
                 if (accessesList.contains(jwtToken.getUsernameFromToken(token.substring(7)))) {
 
                     BufferedReader br1 = new BufferedReader(new InputStreamReader(new FileInputStream(file1.getPath()), "UTF-8"));
-                    BufferedReader br2 = new BufferedReader(new InputStreamReader(new FileInputStream(uploadPath + ), "UTF-8"));
-                    br1.readLine()
+                    //BufferedReader br2 = new BufferedReader(new InputStreamReader(new FileInputStream(uploadPath + ), "UTF-8"));
+                    br1.readLine();
 
 
                     String username = jwtToken.getUsernameFromToken(token.substring(7));
