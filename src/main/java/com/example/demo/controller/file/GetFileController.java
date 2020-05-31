@@ -24,6 +24,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -208,7 +209,6 @@ public class GetFileController {
                         byte[]fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
                         ReturnFile returnFile = new ReturnFile();
                         returnFile.setInfo(Base64.getEncoder().encodeToString(fileContent));
-
                         String responseString = gson.toJson(returnFile);
                         return new ResponseEntity<>(responseString, OK);
                     } catch (IOException e) {
@@ -225,8 +225,7 @@ public class GetFileController {
                             try {
                                 byte[]fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
                                 ReturnFile returnFile = new ReturnFile();
-                                returnFile.setInfo(Base64.getEncoder().encodeToString(fileContent));
-
+                                returnFile.setInfo(Arrays.toString(Base64.getEncoder().encode((fileContent))));
                                 String responseString = gson.toJson(returnFile);
                                 return new ResponseEntity<>(responseString, OK);
                             } catch (IOException e) {
