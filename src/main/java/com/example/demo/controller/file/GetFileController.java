@@ -225,7 +225,7 @@ public class GetFileController {
                             try {
                                 byte[]fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
                                 ReturnFile returnFile = new ReturnFile();
-                                returnFile.setInfo(Arrays.toString(Base64.getEncoder().encode((fileContent))));
+                                returnFile.setInfo(Base64.getEncoder().encodeToString(fileContent));
                                 String responseString = gson.toJson(returnFile);
                                 return new ResponseEntity<>(responseString, OK);
                             } catch (IOException e) {

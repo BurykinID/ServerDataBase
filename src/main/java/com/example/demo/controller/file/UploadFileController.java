@@ -214,6 +214,7 @@ public class UploadFileController {
 
                     OutputStream os = Files.newOutputStream(filepath);
                     os.write(file.getBytes());
+                    os.close();
 
                 }
                 catch (IOException e) {
