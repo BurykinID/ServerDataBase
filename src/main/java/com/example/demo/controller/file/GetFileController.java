@@ -47,71 +47,78 @@ public class GetFileController {
 
     @PostMapping (value = {"/getfile"})
     public ResponseEntity getFile(@RequestHeader ("Authorization") String token,
-                                                       @RequestBody FileForGet fileforGet) {
+                                                    @RequestBody FileForGet fileforGet) {
 
         ArrayList<File> result = fileRepository.findByFilenameAndAuthor(fileforGet.getFilename(), fileforGet.getAuthor(), Sort.by("date").descending());
 
-        File file = fileRepository.findById(result.get(0).getId());
-        String username = jwtToken.getUsernameFromToken(token.substring(7));
-        User user = userRepository.findByUsername(username);
-        Gson gson = new Gson();
+        try{
+            File file = fileRepository.findById(result.get(0).getId());
 
-        if (file != null) {
-            if (user != null) {
+            String username = jwtToken.getUsernameFromToken(token.substring(7));
+            User user = userRepository.findByUsername(username);
+            Gson gson = new Gson();
 
-                boolean isAdmin = user.getRoles().contains(ADMIN);
+            if (file != null) {
+                if (user != null) {
 
-                if (isAdmin) {
+                    boolean isAdmin = user.getRoles().contains(ADMIN);
 
-                    byte[]fileContent = new byte[0];
-                    try {
-                        fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
-                        ReturnFile returnFile = new ReturnFile();
-                        returnFile.setInfo(Base64.getEncoder().encodeToString(fileContent));
-                        returnFile.setVersion(String.valueOf(result.size()));
+                    if (isAdmin) {
 
-                        String responseString = gson.toJson(returnFile);
-                        return new ResponseEntity<>(responseString, HttpStatus.OK);
-                    } catch (IOException e) {
-                        return new ResponseEntity<>("Error Base64 encode", HttpStatus.UNPROCESSABLE_ENTITY);
+                        byte[]fileContent = new byte[0];
+                        try {
+                            fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
+                            ReturnFile returnFile = new ReturnFile();
+                            returnFile.setInfo(Base64.getEncoder().encodeToString(fileContent));
+                            returnFile.setVersion(String.valueOf(result.size()));
+
+                            String responseString = gson.toJson(returnFile);
+                            return new ResponseEntity<>(responseString, HttpStatus.OK);
+                        } catch (IOException e) {
+                            return new ResponseEntity<>("Error Base64 encode", HttpStatus.UNPROCESSABLE_ENTITY);
+                        }
+
                     }
+                    else {
+                        Access access = accessRepository.findByUsernameAndIdFile(username, String.valueOf(file.getId()));
+                        if (access != null) {
+                            if (Integer.parseInt(access.getAccess()) >= 1) {
 
-                }
-                else {
-                    Access access = accessRepository.findByUsernameAndIdFile(username, String.valueOf(file.getId()));
-                    if (access != null) {
-                        if (Integer.parseInt(access.getAccess()) >= 1) {
+                                byte[]fileContent = new byte[0];
+                                try {
+                                    fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
+                                    ReturnFile returnFile = new ReturnFile();
+                                    returnFile.setInfo(Base64.getEncoder().encodeToString(fileContent));
+                                    returnFile.setVersion(String.valueOf(result.size()));
 
-                            byte[]fileContent = new byte[0];
-                            try {
-                                fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
-                                ReturnFile returnFile = new ReturnFile();
-                                returnFile.setInfo(Base64.getEncoder().encodeToString(fileContent));
-                                returnFile.setVersion(String.valueOf(result.size()));
-
-                                String responseString = gson.toJson(returnFile);
-                                return new ResponseEntity<>(responseString, HttpStatus.OK);
-                            } catch (IOException e) {
-                                return new ResponseEntity<>("Error Base64 encode", HttpStatus.UNPROCESSABLE_ENTITY);
+                                    String responseString = gson.toJson(returnFile);
+                                    return new ResponseEntity<>(responseString, HttpStatus.OK);
+                                } catch (IOException e) {
+                                    return new ResponseEntity<>("Error Base64 encode", HttpStatus.UNPROCESSABLE_ENTITY);
+                                }
+                            }
+                            else {
+                                return new ResponseEntity<>("Access denied", FORBIDDEN);
                             }
                         }
                         else {
                             return new ResponseEntity<>("Access denied", FORBIDDEN);
                         }
                     }
-                    else {
-                        return new ResponseEntity<>("Access denied", FORBIDDEN);
-                    }
-                }
 
+                }
+                else {
+                    return new ResponseEntity<>("User does not found", NOT_FOUND);
+                }
             }
             else {
-                return new ResponseEntity<>("User does not found", NOT_FOUND);
+                return new ResponseEntity<>("File does not found", NOT_FOUND);
             }
-        }
-        else {
+        } catch (IndexOutOfBoundsException e) {
             return new ResponseEntity<>("File does not found", NOT_FOUND);
         }
+
+
 
     }
 

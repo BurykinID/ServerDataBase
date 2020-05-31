@@ -1,4 +1,3 @@
-/*
 package com.example.demo.Files;
 
 import com.example.demo.Validator.Calc;
@@ -63,7 +62,6 @@ public class FileTest {
         JwtRequest authenticationRequest = new JwtRequest();
         authenticationRequest.setUsername("u");
         authenticationRequest.setPassword(password);
-
 
         FileJson fileJson = new FileJson();
         fileJson.setFilename("Test.docx");
@@ -280,4 +278,3 @@ public class FileTest {
     }
 
 }
-*/

@@ -1,4 +1,3 @@
-/*
 package com.example.demo.stressful;
 
 import com.example.demo.Validator.Calc;
@@ -37,37 +36,33 @@ public class FileStressful {
     @Test
     public void stressfulInsertFileTest() {
         insertUser();
-
-        Date date = new Date();
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
-        System.out.println(simpleDateFormat.format(date));
-
         for (int i = 0; i < 100000; i++){
             insertFile(i+".docx");
         }
+        Assert.assertNotNull(fileRepository);
 
-        date = new Date();
-        System.out.println(simpleDateFormat.format(date));
-
-        Random r = new Random();
-        int randomInt = r.nextInt(100) + 1;
-
-        File file = fileRepository.findAll().get(randomInt);
-        Assert.assertNotNull(file);
-
-        fileRepository.deleteAll();
-        accessRepository.deleteAll();
-        userRepository.deleteAll();
     }
 
     @Test
     public void stressfulGetFileTest() {
 
+        for (int i = 0; i < 100000; i++){
+            insertFile(i+".docx");
+        }
+
+        Random random = new Random();
+        int randInt = random.nextInt(10000) + 1;
+
+        String id = String.valueOf(fileRepository.findAll().get(randInt).getId());
+
+        Assert.assertNotNull(fileRepository.findById(UUID.fromString(id)));
     }
 
     @After
     public void clearTable() {
-
+        fileRepository.deleteAll();
+        accessRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     public void insertUser() {
@@ -134,4 +129,3 @@ public class FileStressful {
 
 
 }
-*/
