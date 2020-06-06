@@ -45,63 +45,19 @@ public class ListFileController {
 
         String username = jwtToken.getUsernameFromToken(token.substring(7));
 
-        User user = userRepository.findByUsername(username);
-        Gson gson = new Gson();
+        if (username != null || !username.equals("null")) {
 
-        if (user != null) {
+            User user = userRepository.findByUsername(username);
+            Gson gson = new Gson();
 
-            List<File> files = fileRepository.findAll();
-            ArrayList<File> accessFiles = new ArrayList<>();
+            if (user != null) {
 
-            if (user.getRoles().contains(ADMIN)) {
+                List<File> files = fileRepository.findAll();
+                ArrayList<File> accessFiles = new ArrayList<>();
 
-                for (File file: files) {
+                if (user.getRoles().contains(ADMIN)) {
 
-                    boolean isExists = false;
-                    boolean isReplase = false;
-                    int k = 0;
-
-                    for (File existFile : accessFiles) {
-
-                        if (existFile.getFilename().equals(file.getFilename()) &&
-                                existFile.getAuthor().equals(file.getAuthor()) &&
-                                (Long.parseLong(existFile.getDate()) < Long.parseLong(file.getDate()))) {
-                            isReplase = true;
-                            isExists = true;
-                            break;
-                        }
-                        else if (existFile.getFilename().equals(file.getFilename()) &&
-                                existFile.getAuthor().equals(file.getAuthor()) &&
-                                (Long.parseLong(existFile.getDate()) >= Long.parseLong(file.getDate()))) {
-                            isExists = true;
-                            break;
-                        }
-                        k++;
-
-                    }
-
-                    if (isReplase) {
-                        accessFiles.set(k, file);
-                    }
-
-                    if (!isExists)
-                        accessFiles.add(file);
-
-                }
-
-                ArrayList<FileJsonOutput> jsonFiles = new ArrayList<>();
-
-                for (File file : accessFiles) {
-                    jsonFiles.add(new FileJsonOutput(String.valueOf(file.getId()),file.getFilename(), file.getAuthor(), file.getAuthor(), file.getDate(), file.getTag()));
-                }
-
-                String responseString = gson.toJson(jsonFiles);
-                return new ResponseEntity<>(responseString, OK);
-            }
-            else {
-                for (File file: files) {
-                    Access access = accessRepository.findByUsernameAndIdFile(username, String.valueOf(file.getId()));
-                    if (access != null && (Integer.parseInt(access.getAccess()) >= 1)) {
+                    for (File file: files) {
 
                         boolean isExists = false;
                         boolean isReplase = false;
@@ -110,15 +66,15 @@ public class ListFileController {
                         for (File existFile : accessFiles) {
 
                             if (existFile.getFilename().equals(file.getFilename()) &&
-                                existFile.getAuthor().equals(file.getAuthor()) &&
-                                (Long.parseLong(existFile.getDate()) < Long.parseLong(file.getDate()))) {
+                                    existFile.getAuthor().equals(file.getAuthor()) &&
+                                    (Long.parseLong(existFile.getDate()) < Long.parseLong(file.getDate()))) {
                                 isReplase = true;
                                 isExists = true;
                                 break;
                             }
                             else if (existFile.getFilename().equals(file.getFilename()) &&
-                                     existFile.getAuthor().equals(file.getAuthor()) &&
-                                     (Long.parseLong(existFile.getDate()) >= Long.parseLong(file.getDate()))) {
+                                    existFile.getAuthor().equals(file.getAuthor()) &&
+                                    (Long.parseLong(existFile.getDate()) >= Long.parseLong(file.getDate()))) {
                                 isExists = true;
                                 break;
                             }
@@ -132,10 +88,8 @@ public class ListFileController {
 
                         if (!isExists)
                             accessFiles.add(file);
-                    }
-                }
 
-                if (accessFiles != null && accessFiles.size() > 0) {
+                    }
 
                     ArrayList<FileJsonOutput> jsonFiles = new ArrayList<>();
 
@@ -145,18 +99,71 @@ public class ListFileController {
 
                     String responseString = gson.toJson(jsonFiles);
                     return new ResponseEntity<>(responseString, OK);
-
                 }
                 else {
-                    // уточняю
-                    return new ResponseEntity<>("", OK);
+                    for (File file: files) {
+                        Access access = accessRepository.findByUsernameAndIdFile(username, String.valueOf(file.getId()));
+                        if (access != null && (Integer.parseInt(access.getAccess()) >= 1)) {
+
+                            boolean isExists = false;
+                            boolean isReplase = false;
+                            int k = 0;
+
+                            for (File existFile : accessFiles) {
+
+                                if (existFile.getFilename().equals(file.getFilename()) &&
+                                        existFile.getAuthor().equals(file.getAuthor()) &&
+                                        (Long.parseLong(existFile.getDate()) < Long.parseLong(file.getDate()))) {
+                                    isReplase = true;
+                                    isExists = true;
+                                    break;
+                                }
+                                else if (existFile.getFilename().equals(file.getFilename()) &&
+                                        existFile.getAuthor().equals(file.getAuthor()) &&
+                                        (Long.parseLong(existFile.getDate()) >= Long.parseLong(file.getDate()))) {
+                                    isExists = true;
+                                    break;
+                                }
+                                k++;
+
+                            }
+
+                            if (isReplase) {
+                                accessFiles.set(k, file);
+                            }
+
+                            if (!isExists)
+                                accessFiles.add(file);
+                        }
+                    }
+
+                    if (accessFiles != null && accessFiles.size() > 0) {
+
+                        ArrayList<FileJsonOutput> jsonFiles = new ArrayList<>();
+
+                        for (File file : accessFiles) {
+                            jsonFiles.add(new FileJsonOutput(String.valueOf(file.getId()),file.getFilename(), file.getAuthor(), file.getAuthor(), file.getDate(), file.getTag()));
+                        }
+
+                        String responseString = gson.toJson(jsonFiles);
+                        return new ResponseEntity<>(responseString, OK);
+
+                    }
+                    else {
+                        // уточняю
+                        return new ResponseEntity<>("", OK);
+                    }
                 }
+
+            }
+            else {
+                return new ResponseEntity<>("User does not found", NOT_FOUND);
             }
 
+
         }
-        else {
-            return new ResponseEntity<>("User does not found", NOT_FOUND);
-        }
+
+        return new ResponseEntity<>("User does not found", NOT_FOUND);
 
     }
 

@@ -21,7 +21,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
-@RequestMapping()
+@RequestMapping
 public class UsersController {
 
     private final UserRepository userRepository;
@@ -37,7 +37,7 @@ public class UsersController {
     }
 
     // success
-    @GetMapping
+    @GetMapping ("/listUser")
     public ResponseEntity getUserList(@RequestHeader ("Authorization") String token) {
 
         Gson gson = new Gson();

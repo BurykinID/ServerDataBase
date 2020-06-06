@@ -82,7 +82,14 @@ public class JwtToken implements Serializable {
 
         final String username = getUsernameFromToken(token);
 
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        try {
+            return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        }
+        catch (NullPointerException e) {
+            return null;
+        }
+
+
 
     }
 

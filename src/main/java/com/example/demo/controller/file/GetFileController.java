@@ -12,19 +12,13 @@ import com.example.demo.repository.FileRepository;
 import com.example.demo.repository.UserRepository;
 import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -56,6 +50,7 @@ public class GetFileController {
             File file = fileRepository.findById(result.get(0).getId());
 
             String username = jwtToken.getUsernameFromToken(token.substring(7));
+
             User user = userRepository.findByUsername(username);
             Gson gson = new Gson();
 
@@ -69,14 +64,20 @@ public class GetFileController {
                         byte[]fileContent = new byte[0];
                         try {
                             fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
-                            ReturnFile returnFile = new ReturnFile();
-                            returnFile.setInfo(Base64.getEncoder().encodeToString(fileContent));
-                            returnFile.setVersion(String.valueOf(result.size()));
+                            if (fileContent != null) {
+                                ReturnFile returnFile = new ReturnFile();
+                                returnFile.setInfo(Base64.getEncoder().encodeToString(fileContent));
+                                returnFile.setVersion(String.valueOf(result.size()));
 
-                            String responseString = gson.toJson(returnFile);
-                            return new ResponseEntity<>(responseString, HttpStatus.OK);
+                                String responseString = gson.toJson(returnFile);
+                                return new ResponseEntity<>(responseString, HttpStatus.OK);
+                            } else {
+
+                                return new ResponseEntity<>("File does not found", NOT_FOUND);
+                            }
+
                         } catch (IOException e) {
-                            return new ResponseEntity<>("Error Base64 encode", HttpStatus.UNPROCESSABLE_ENTITY);
+                            return new ResponseEntity<>("File does not found", HttpStatus.UNPROCESSABLE_ENTITY);
                         }
 
                     }
@@ -88,14 +89,19 @@ public class GetFileController {
                                 byte[]fileContent = new byte[0];
                                 try {
                                     fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));
-                                    ReturnFile returnFile = new ReturnFile();
-                                    returnFile.setInfo(Base64.getEncoder().encodeToString(fileContent));
-                                    returnFile.setVersion(String.valueOf(result.size()));
+                                    if (fileContent != null) {
+                                        ReturnFile returnFile = new ReturnFile();
+                                        returnFile.setInfo(Base64.getEncoder().encodeToString(fileContent));
+                                        returnFile.setVersion(String.valueOf(result.size()));
 
-                                    String responseString = gson.toJson(returnFile);
-                                    return new ResponseEntity<>(responseString, HttpStatus.OK);
+                                        String responseString = gson.toJson(returnFile);
+                                        return new ResponseEntity<>(responseString, HttpStatus.OK);
+                                    } else {
+
+                                        return new ResponseEntity<>("File does not found", NOT_FOUND);
+                                    }
                                 } catch (IOException e) {
-                                    return new ResponseEntity<>("Error Base64 encode", HttpStatus.UNPROCESSABLE_ENTITY);
+                                    return new ResponseEntity<>("File does not found", HttpStatus.UNPROCESSABLE_ENTITY);
                                 }
                             }
                             else {
@@ -127,7 +133,7 @@ public class GetFileController {
     public ResponseEntity getFileVersion(@RequestHeader ("Authorization") String token,
                                   @RequestBody FileForGetVersion fileForGetVersion) {
 
-        ArrayList<File> result = fileRepository.findByFilenameAndAuthor(fileForGetVersion.getFilename(), fileForGetVersion.getAuthor(), Sort.by("date").descending());
+        ArrayList<File> result = fileRepository.findByFilenameAndAuthor(fileForGetVersion.getFilename(), fileForGetVersion.getAuthor(), Sort.by("date").ascending());
 
         File file = fileRepository.findById(result.get(Integer.parseInt(fileForGetVersion.getVersion())-1).getId());
         String username = jwtToken.getUsernameFromToken(token.substring(7));
@@ -149,7 +155,7 @@ public class GetFileController {
                         String responseString = gson.toJson(returnFile);
                         return new ResponseEntity<>(responseString, OK);
                     } catch (IOException e) {
-                        return new ResponseEntity<>("Error Base64 encode", HttpStatus.UNPROCESSABLE_ENTITY);
+                        return new ResponseEntity<>("File does not found", HttpStatus.UNPROCESSABLE_ENTITY);
                     }
                 }
                 else {
@@ -166,7 +172,7 @@ public class GetFileController {
                                 String responseString = gson.toJson(returnFile);
                                 return new ResponseEntity<>(responseString, OK);
                             } catch (IOException e) {
-                                return new ResponseEntity<>("Error Base64 encode", HttpStatus.UNPROCESSABLE_ENTITY);
+                                return new ResponseEntity<>("File does not found", HttpStatus.UNPROCESSABLE_ENTITY);
                             }
                         }
                         else {
@@ -212,7 +218,7 @@ public class GetFileController {
                         String responseString = gson.toJson(returnFile);
                         return new ResponseEntity<>(responseString, OK);
                     } catch (IOException e) {
-                        return new ResponseEntity<>("Error Base64 encode", HttpStatus.UNPROCESSABLE_ENTITY);
+                        return new ResponseEntity<>("File does not found", HttpStatus.UNPROCESSABLE_ENTITY);
                     }
                 }
                 else {
@@ -227,9 +233,16 @@ public class GetFileController {
                                 ReturnFile returnFile = new ReturnFile();
                                 returnFile.setInfo(Base64.getEncoder().encodeToString(fileContent));
                                 String responseString = gson.toJson(returnFile);
+
+                                /*Path path = Paths.get("c:\\Users\\admin\\Desktop\\Test\\test.pdf");
+
+                                OutputStream os = Files.newOutputStream(path);
+                                os.write(Base64.getDecoder().decode(Base64.getEncoder().encodeToString(fileContent)));
+                                os.close();*/
+
                                 return new ResponseEntity<>(responseString, OK);
                             } catch (IOException e) {
-                                return new ResponseEntity<>("Error Base64 encode", HttpStatus.UNPROCESSABLE_ENTITY);
+                                return new ResponseEntity<>("File does not found", HttpStatus.UNPROCESSABLE_ENTITY);
                             }
 
                         }
