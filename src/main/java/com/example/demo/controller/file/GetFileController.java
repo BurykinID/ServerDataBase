@@ -226,7 +226,7 @@ public class GetFileController {
                     Access access = accessRepository.findByUsernameAndIdFile(user.getUsername(), idFile);
                     if (access != null) {
 
-                        if (Integer.parseInt(access.getAccess()) > 1) {
+                        if (Integer.parseInt(access.getAccess()) >= 1) {
 
                             try {
                                 byte[]fileContent = FileUtils.readFileToByteArray(new java.io.File(file.getPath()));

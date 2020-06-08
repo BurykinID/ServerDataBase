@@ -21,7 +21,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
-@RequestMapping
+@RequestMapping("/listUser")
 public class UsersController {
 
     private final UserRepository userRepository;
@@ -37,7 +37,7 @@ public class UsersController {
     }
 
     // success
-    @GetMapping ("/listUser")
+    @GetMapping ()
     public ResponseEntity getUserList(@RequestHeader ("Authorization") String token) {
 
         Gson gson = new Gson();
@@ -55,7 +55,7 @@ public class UsersController {
     }
 
     //succes
-    @GetMapping(value = "/listUser/{name}")
+    @GetMapping(value = "/{name}")
     public ResponseEntity getUser(@RequestHeader ("Authorization") String token,
                                   @PathVariable (name = "name") String name) {
 
@@ -67,7 +67,7 @@ public class UsersController {
 
     }
 
-    @GetMapping(value = "listUser/file/{id}")
+    @GetMapping(value = "/file/{id}")
     public ResponseEntity getUserForFile(@RequestHeader ("Authorization") String token,
                                          @PathVariable (name = "id") String id) {
 
