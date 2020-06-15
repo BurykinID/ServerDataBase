@@ -46,4 +46,7 @@ public class File {
         this.tag = tag;
     }
 
+    public ArrayList<String> getTag () {
+        return tag;
+    }
 }

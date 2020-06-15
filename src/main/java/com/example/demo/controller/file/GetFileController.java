@@ -4,6 +4,7 @@ import com.example.demo.config.component.JwtToken;
 import com.example.demo.entity.Access;
 import com.example.demo.entity.File;
 import com.example.demo.entity.User;
+import com.example.demo.forJsonObject.file.FileJsonOutput;
 import com.example.demo.forJsonObject.file.Get.FileForGet;
 import com.example.demo.forJsonObject.file.Get.FileForGetVersion;
 import com.example.demo.forJsonObject.file.Get.ReturnFile;
@@ -260,6 +261,47 @@ public class GetFileController {
         }
 
         return new ResponseEntity("User does not found", NOT_FOUND);
+    }
+
+    @GetMapping(value = "/file/getbranch")
+    public ResponseEntity getInfoBranchFile(@RequestHeader ("Authorization") String token,
+                                            @RequestBody FileForGet fileForGet) {
+
+        ArrayList<File> result = fileRepository.findByFilenameAndAuthor(fileForGet.getFilename(), fileForGet.getAuthor(), Sort.by("date").descending());
+
+        String username = jwtToken.getUsernameFromToken(token.substring(7));
+        User user = userRepository.findByUsername(username);
+
+        if (user.getRoles().contains(ADMIN)) {
+            ArrayList<FileJsonOutput> responseFiles = new ArrayList<>();
+
+            for (File file : result) {
+                responseFiles.add(new FileJsonOutput(String.valueOf(file.getId()), file.getFilename(), file.getAuthor(), file.getEditor(), file.getDate(), file.getTag()));
+            }
+
+            Gson gson = new Gson();
+
+            return new ResponseEntity(gson.toJson(responseFiles), OK);
+
+        }
+        else {
+
+            ArrayList<FileJsonOutput> responseFiles = new ArrayList<>();
+
+            for (File file : result) {
+                Access access = accessRepository.findByUsernameAndIdFile(username, String.valueOf(file.getId()));
+                if (Integer.parseInt(access.getAccess()) >= 1) {
+                    responseFiles.add(new FileJsonOutput(String.valueOf(file.getId()), file.getFilename(), file.getAuthor(), file.getEditor(), file.getDate(), file.getTag()));
+                }
+
+            }
+
+            Gson gson = new Gson();
+
+            return new ResponseEntity(gson.toJson(responseFiles), OK);
+
+        }
+
     }
 
 }
